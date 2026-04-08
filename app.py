@@ -1,5 +1,5 @@
 import joblib
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from models import db, User, SensorData, HealthReport
 from services import save_sensor_data, get_health_history
 from ai_service import calculate_health_score
@@ -102,6 +102,11 @@ def analyze_health(user_id):
         "msg": "AI 分析完成",
         "data": analysis_result
     })
+
+@app.route('/dashboard')
+def dashboard():
+    """渲染前端控制台页面"""
+    return render_template('dashboard.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
