@@ -1,84 +1,107 @@
-from flask import Flask
-from models import db, SensorData
-from flask import request, jsonify
-from services import save_sensor_data
-from services import get_health_history
+import joblib
+from flask import Flask, request, jsonify
+from models import db, User, SensorData, HealthReport
+from services import save_sensor_data, get_health_history
+from ai_service import calculate_health_score
 
 app = Flask(__name__)
 
-# --- 数据库配置 ---
-# 格式：mysql+pymysql://用户名:密码@主机地址:端口号/数据库名
+# 1. 基础与数据库配置
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/smart_home_health'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 初始化插件
+# 2. 加载 AI 模型
+try:
+    health_model = joblib.load('health_model.pkl')
+    print("✅ AI 模型加载成功，系统已就绪。")
+except Exception as e:
+    print(f"❌ 模型加载失败: {e}")
+    health_model = None
+
+# 3. 数据库与初始数据加载
 db.init_app(app)
 
-# 创建数据库表的脚本
 with app.app_context():
-    db.create_all()
-    print("数据库表已成功创建！")
-
-# 检查初始用户
-with app.app_context():
-    db.create_all()
-    # 检查是否已经有名为 id=1 的用户
-    from models import User
-    admin = User.query.get(1)
-    if not admin:
+    db.create_all() # 创建所有表
+    print("✅ 数据库表已成功创建/连接！")
+    
+    # 检查并创建初始管理员用户
+    if not User.query.get(1):
         print("检测到无初始用户，正在创建...")
         new_user = User(id=1, username="admin", password_hash="123456")
         db.session.add(new_user)
         db.session.commit()
-        print("初始用户(ID:1)创建成功！")
-    else:
-        print("初始用户已存在，跳过创建。")
+        print("✅ 初始用户(ID:1)创建成功！")
 
-# 首页测试
+# 4. 路由与 API 接口
 @app.route('/')
 def index():
     return "<h1>智慧家居健康系统 - 运行中</h1><p>数据正在后台源源不断地写入...</p>"
 
-# 接受JSON数据
-@app.route('/api/sensor/upload', methods=['POST'])
-def upload_data():
-    # 获取 POST 请求中的 JSON 数据
-    json_data = request.get_json()
-    
-    if not json_data:
-        return jsonify({"code": 400, "msg": "未接收到 JSON 数据"}), 400
-
-    # 调用封装好的逻辑函数
-    success, message = save_sensor_data(json_data)
-
-    if success:
-        return jsonify({"code": 200, "msg": message}), 200
-    else:
-        return jsonify({"code": 500, "msg": message}), 500
-
-# 查询测试
 @app.route('/test_db')
 def test_db():
-    # 查询数据库中最后一条记录
+    """测试接口：快速查看最新一条数据"""
     last_data = SensorData.query.order_by(SensorData.id.desc()).first()
     if last_data:
         return f"最新心率: {last_data.heart_rate}, 写入时间: {last_data.timestamp}"
     return "数据库里还没有数据哦。"
 
-# 数据api接口
+@app.route('/api/sensor/upload', methods=['POST'])
+def upload_data():
+    """接收硬件传感器上传的 JSON 数据"""
+    json_data = request.get_json()
+    if not json_data:
+        return jsonify({"code": 400, "msg": "未接收到 JSON 数据"}), 400
+
+    success, message = save_sensor_data(json_data)
+    if success:
+        return jsonify({"code": 200, "msg": message}), 200
+    return jsonify({"code": 500, "msg": message}), 500
+
 @app.route('/api/health/history')
 def health_history_api():
-    # 实际项目中这里应该从 Session 获取当前登录用户的 ID
-    # 此处写死 user_id=1 进行测试
-    user_id = 1
-    
-    # 调用刚才封装的函数，获取最近 7 天数据
+    """获取用户历史数据，供前端 ECharts 渲染使用"""
+    user_id = 1 # 测试阶段写死，后期从登录 Session 获取
     result = get_health_history(user_id, days=7)
     
     if result["status"] == "success":
         return jsonify(result["data"])
-    else:
-        return jsonify({"error": result["message"]}), 500
+    return jsonify({"error": result["message"]}), 500
+
+@app.route('/api/analyze/<int:user_id>', methods=['POST', 'GET'])
+def analyze_health(user_id):
+    """触发 AI 诊断，并保存健康报告"""
+    if health_model is None:
+        return jsonify({"code": 500, "msg": "AI 模型不可用"}), 500
+
+    # 获取最新的一条传感器数据
+    latest_data = SensorData.query.filter_by(user_id=user_id).order_by(SensorData.timestamp.desc()).first()
+    if not latest_data:
+        return jsonify({"code": 404, "msg": "未找到该用户的体征数据，无法分析"}), 404
+
+    # 调用 AI 逻辑 (计算平滑的健康分)
+    analysis_result = calculate_health_score(
+        heart_rate=latest_data.heart_rate,
+        sleep_hours=latest_data.sleep_hours,
+        steps=latest_data.steps,
+        model=health_model
+    )
+
+    # 持久化报告
+    new_report = HealthReport(
+        user_id=user_id,
+        health_score=analysis_result["health_score"],
+        risk_level=analysis_result["risk_level"],
+        ai_suggestion=analysis_result["suggestion"]
+    )
+    db.session.add(new_report)
+    db.session.commit()
+
+    return jsonify({
+        "code": 200,
+        "msg": "AI 分析完成",
+        "data": analysis_result
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
