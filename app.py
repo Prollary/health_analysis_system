@@ -6,6 +6,7 @@ from ai_service import calculate_health_score
 from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
+from cloud_ai_service import get_cloud_ai_advice
 
 app = Flask(__name__)
 
@@ -89,34 +90,47 @@ def analyze_health(user_id):
     if not latest_data:
         return jsonify({"code": 404, "msg": "未找到该用户的体征数据，无法分析"}), 404
 
-    # 调用 AI 逻辑
+    # 本地模型分析
     analysis_result = calculate_health_score(
         heart_rate=latest_data.heart_rate,
         sleep_hours=latest_data.sleep_hours,
         steps=latest_data.steps,
-        room_temp=latest_data.room_temp,  # 传入室温
-        humidity=latest_data.humidity,    # 传入湿度
-        co2_level=latest_data.co2_level,  # 传入CO2
+        room_temp=latest_data.room_temp,
+        humidity=latest_data.humidity,
+        co2_level=latest_data.co2_level,
         model=health_model
     )
+
+    # 百度云端 AI 深度分析 
+    cloud_report = get_cloud_ai_advice(
+        latest_data.heart_rate, 
+        latest_data.sleep_hours,
+        latest_data.steps,
+        latest_data.room_temp,
+        latest_data.co2_level
+    )
+
     combined_suggestion = analysis_result["suggestion"]
     if analysis_result["linkage_analysis"]["env_suggestions"]:
         combined_suggestion += "\n" + analysis_result["linkage_analysis"]["env_suggestions"][0]
 
     # 持久化报告
-    new_report = HealthReport(
+    nnew_report = HealthReport(
         user_id=user_id,
         health_score=analysis_result["health_score"],
         risk_level=analysis_result["risk_level"],
-        ai_suggestion=combined_suggestion
+        ai_suggestion=analysis_result["suggestion"],
+        cloud_ai_report=cloud_report  # 存入云端建议
     )
     db.session.add(new_report)
     db.session.commit()
 
     return jsonify({
         "code": 200,
-        "msg": "AI 联动分析完成",
-        "data": analysis_result
+        "data": {
+            "local": analysis_result,
+            "cloud_advice": cloud_report # 返回给前端
+        }
     })
 
 @app.route('/dashboard')

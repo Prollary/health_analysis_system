@@ -5,7 +5,8 @@ def calculate_health_score(heart_rate, sleep_hours, steps, room_temp, humidity, 
     输入实时数据，输出 AI 的诊断结果与健康分
     """
     # 构造特征矩阵
-    features = np.array([[heart_rate, sleep_hours, steps]])
+    import numpy as np
+    features = np.array([[heart_rate, sleep_hours, steps, room_temp, humidity, co2_level]])
 
     # 获取 AI 的预测分类 (0: 健康, 1: 亚健康, 2: 高风险)
     predicted_class = model.predict(features)[0]

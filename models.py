@@ -23,14 +23,10 @@ class SensorData(db.Model):
     __tablename__ = 'sensor_data'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    
-    # --- 原有生理数据 ---
     heart_rate = db.Column(db.Integer)       # 心率
     sleep_hours = db.Column(db.Float)        # 睡眠时长
     steps = db.Column(db.Integer)            # 步数
     temperature = db.Column(db.Float)        # 体温
-    
-    # --- 新增：智慧家居环境数据 ---
     room_temp = db.Column(db.Float)          # 卧室温度 (℃)
     humidity = db.Column(db.Float)           # 相对湿度 (%)
     co2_level = db.Column(db.Integer)        # CO2浓度 (ppm)
@@ -44,5 +40,6 @@ class HealthReport(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     health_score = db.Column(db.Integer)     # AI 计算的健康分
     ai_suggestion = db.Column(db.Text)       # AI 给出的建议
+    cloud_ai_report = db.Column(db.Text)   # 存储百度 AI 返回的深度建议
     risk_level = db.Column(db.String(20))    # 风险等级（低/中/高）
     created_at = db.Column(db.DateTime, default=datetime.now)

@@ -1,0 +1,3 @@
+2026-04-09 04:46:20,386 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
+2026-04-09 04:46:22,909 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
+2026-04-09 04:46:40,514 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
