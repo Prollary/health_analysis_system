@@ -2,6 +2,7 @@ from flask import Flask
 from models import db, SensorData
 from flask import request, jsonify
 from services import save_sensor_data
+from services import get_health_history
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ with app.app_context():
     db.create_all()
     print("数据库表已成功创建！")
 
+# 检查初始用户
 with app.app_context():
     db.create_all()
     # 检查是否已经有名为 id=1 的用户
@@ -32,10 +34,12 @@ with app.app_context():
     else:
         print("初始用户已存在，跳过创建。")
 
+# 首页测试
 @app.route('/')
 def index():
     return "<h1>智慧家居健康系统 - 运行中</h1><p>数据正在后台源源不断地写入...</p>"
 
+# 接受JSON数据
 @app.route('/api/sensor/upload', methods=['POST'])
 def upload_data():
     # 获取 POST 请求中的 JSON 数据
@@ -60,6 +64,21 @@ def test_db():
     if last_data:
         return f"最新心率: {last_data.heart_rate}, 写入时间: {last_data.timestamp}"
     return "数据库里还没有数据哦。"
+
+# 数据api接口
+@app.route('/api/health/history')
+def health_history_api():
+    # 实际项目中这里应该从 Session 获取当前登录用户的 ID
+    # 此处写死 user_id=1 进行测试
+    user_id = 1
+    
+    # 调用刚才封装的函数，获取最近 7 天数据
+    result = get_health_history(user_id, days=7)
+    
+    if result["status"] == "success":
+        return jsonify(result["data"])
+    else:
+        return jsonify({"error": result["message"]}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
