@@ -4,153 +4,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智慧家居健康分析中心</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>AI 智慧家居健康舱</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .card {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: none;
-            margin-bottom: 20px;
-        }
-
-        #chart-container {
-            height: 400px;
-            width: 100%;
-        }
-    </style>
 </head>
 
 <body>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 text-primary">🏡 智慧家居健康分析中心</h2>
-
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="card-title mb-0">实时健康指标趋势</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="chart-container"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="card-title mb-0">🧠 AI 健康大脑</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <button class="btn btn-success w-100 mb-3" onclick="triggerAI()">一键 AI 深度诊断</button>
-
-                        <div id="ai-result" style="display: none;">
-                            <h1 id="health-score" class="text-success display-4 font-weight-bold">--</h1>
-                            <p class="text-muted">综合健康分</p>
-                            <span id="risk-badge" class="badge bg-success mb-3">状态未知</span>
-                            <p id="ai-suggestion" class="text-start bg-light p-3 rounded text-secondary"
-                                style="font-size: 0.9em;">
-                                等待诊断...
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <header class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <span>HealthAI 智慧舱</span>
         </div>
-    </div>
+        <div class="user-profile">
+            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User Avatar" class="avatar">
+            <span>管理员 (ID: 1)</span>
+        </div>
+    </header>
 
-    <script>
-        // 1. 初始化 ECharts 实例
-        const chartDom = document.getElementById('chart-container');
-        const myChart = echarts.init(chartDom);
+    <main class="container">
 
-        // 2. 获取历史数据并渲染图表 (对接 GET /api/health/history)
-        async function loadChartData() {
-            try {
-                const response = await fetch('/api/health/history');
-                const result = await response.json();
+        <section class="kpi-grid">
+            <div class="kpi-card">
+                <div class="icon-box red"><i class="fa-solid fa-wave-square"></i></div>
+                <div class="kpi-info">
+                    <h3>平均心率</h3>
+                    <p id="kpi-hr">-- <span>bpm</span></p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="icon-box blue"><i class="fa-solid fa-moon"></i></div>
+                <div class="kpi-info">
+                    <h3>昨晚睡眠</h3>
+                    <p id="kpi-sleep">-- <span>h</span></p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="icon-box green"><i class="fa-solid fa-shoe-prints"></i></div>
+                <div class="kpi-info">
+                    <h3>今日步数</h3>
+                    <p id="kpi-steps">-- <span>步</span></p>
+                </div>
+            </div>
+        </section>
 
-                // 配置 ECharts 选项
-                const option = {
-                    tooltip: { trigger: 'axis' },
-                    legend: { data: ['心率(bpm)', '步数(百步)'] },
-                    xAxis: { type: 'category', data: result.times },
-                    yAxis: [
-                        { type: 'value', name: '心率' },
-                        { type: 'value', name: '步数 (x100)' } // 缩放步数以便在同个图表展示
-                    ],
-                    series: [
-                        {
-                            name: '心率(bpm)',
-                            type: 'line',
-                            smooth: true,
-                            data: result.heart_rates,
-                            itemStyle: { color: '#ff6b6b' }
-                        },
-                        {
-                            name: '步数(百步)',
-                            type: 'bar',
-                            yAxisIndex: 1,
-                            data: result.steps.map(s => s / 100), // 步数除以100
-                            itemStyle: { color: '#4dabf7' }
-                        }
-                    ]
-                };
-                myChart.setOption(option);
-            } catch (error) {
-                console.error("加载图表数据失败:", error);
-            }
-        }
+        <section class="main-grid">
+            <div class="chart-container card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-chart-line"></i> 体征趋势对比分析</h2>
+                </div>
+                <div id="mainChart" class="chart-area"></div>
+            </div>
 
-        // 3. 触发 AI 诊断 (对接 POST /api/analyze/1)
-        async function triggerAI() {
-            const btn = document.querySelector('button');
-            btn.innerText = "🧠 正在连线 AI 大脑计算中...";
-            btn.disabled = true;
+            <div class="ai-console card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-robot"></i> 实时 AI 诊断</h2>
+                </div>
 
-            try {
-                const response = await fetch('/api/analyze/1', { method: 'POST' });
-                const res = await response.json();
+                <form id="healthForm" class="health-form">
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-heart"></i> 即时心率</label>
+                        <input type="number" id="input-hr" placeholder="例如: 75" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-bed"></i> 睡眠时长</label>
+                        <input type="number" step="0.1" id="input-sleep" placeholder="例如: 7.5" required>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-person-walking"></i> 今日步数</label>
+                        <input type="number" id="input-steps" placeholder="例如: 8000" required>
+                    </div>
+                    <button type="submit" class="btn-primary" id="analyzeBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> 启动 AI 分析
+                    </button>
+                </form>
 
-                if (res.code === 200) {
-                    const data = res.data;
-                    // 显示结果区域
-                    document.getElementById('ai-result').style.display = 'block';
+                <div id="ai-result" class="ai-result hidden">
+                    <div class="score-circle">
+                        <span id="res-score">95</span>
+                    </div>
+                    <div class="result-text">
+                        <h3 id="res-level">健康状态</h3>
+                        <p id="res-suggestion">正在等待数据接入...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-                    // 更新分数
-                    document.getElementById('health-score').innerText = data.health_score;
-
-                    // 更新风险等级 UI
-                    const badge = document.getElementById('risk-badge');
-                    badge.innerText = data.risk_level;
-                    if (data.risk_level === '低风险') badge.className = 'badge bg-success mb-3';
-                    else if (data.risk_level === '中风险') badge.className = 'badge bg-warning text-dark mb-3';
-                    else badge.className = 'badge bg-danger mb-3';
-
-                    // 更新建议
-                    document.getElementById('ai-suggestion').innerText = data.suggestion;
-                } else {
-                    alert("AI 分析出错: " + res.msg);
-                }
-            } catch (error) {
-                alert("请求失败，请检查后端运行状态。");
-            } finally {
-                btn.innerText = "重新执行 AI 诊断";
-                btn.disabled = false;
-            }
-        }
-
-        // 页面加载完成后立即渲染一次图表
-        loadChartData();
-        // 设定每 5 秒刷新一次图表（实现动态心率效果）
-        setInterval(loadChartData, 5000);
-    </script>
+    <script src="/static/js/script.js"></script>
 </body>
 
 </html>

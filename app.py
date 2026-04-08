@@ -3,6 +3,17 @@ from flask import Flask, request, jsonify, render_template
 from models import db, User, SensorData, HealthReport
 from services import save_sensor_data, get_health_history
 from ai_service import calculate_health_score
+from flask import jsonify
+import logging
+from logging.handlers import RotatingFileHandler
+
+# 配置日志：记录到 app.log
+file_handler = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=10)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+))
+file_handler.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
 
 app = Flask(__name__)
 
@@ -107,6 +118,23 @@ def analyze_health(user_id):
 def dashboard():
     """渲染前端控制台页面"""
     return render_template('dashboard.html')
+
+
+# 全局处理 404 错误
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"status": "error", "message": "请求的资源不存在"}), 404
+
+# 全局处理 500 错误 (代码逻辑崩溃)
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # 判断错误类型
+    app.logger.error(f"系统运行崩溃: {str(e)}") # 记录到服务器日志
+    return jsonify({
+        "status": "error", 
+        "message": "系统繁忙或后台故障，请稍后再试",
+        "error_type": type(e).__name__ 
+    }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

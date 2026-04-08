@@ -70,3 +70,29 @@ def get_health_history(user_id, days=7):
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+#校验
+def validate_health_data(data):
+    """
+    健康数据合规性校验
+    """
+    # 校验字段是否存在
+    required = ['heart_rate', 'sleep_hours', 'steps']
+    for field in required:
+        if field not in data:
+            return False, f"缺少关键指标: {field}"
+    
+    # 校验数值范围（医学逻辑）
+    hr = data['heart_rate']
+    if not (30 <= hr <= 220):
+        return False, f"异常心率值: {hr} (合理范围 30-220)"
+    
+    sleep = data['sleep_hours']
+    if not (0 <= sleep <= 24):
+        return False, "睡眠时间必须在 0 到 24 小时之间"
+    
+    steps = data['steps']
+    if steps < 0:
+        return False, "步数不能为负数"
+        
+    return True, "校验通过"
