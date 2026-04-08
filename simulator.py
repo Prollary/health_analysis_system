@@ -6,15 +6,19 @@ import random
 URL = "http://127.0.0.1:5000/api/sensor/upload"
 
 def generate_mock_data(user_id=1):
-    """随机生成符合常理的健康数据"""
+    """随机生成包含环境数据的健康体征"""
+    # 模拟环境状态（有概率生成高CO2或异常温度以测试AI告警）
+    is_bad_env = random.choice([True, False]) 
+    
     data = {
         "user_id": user_id,
-        "heart_rate": random.randint(60, 100),       # 模拟心率在 60-100 之间波动
-        "sleep_hours": round(random.uniform(5, 9), 1), # 模拟睡眠 5-9 小时
-        "steps": random.randint(1000, 15000),         # 模拟步数
-        "temperature": round(random.uniform(20.0, 30.0), 1), # 模拟室温 20-30度
-        "humidity": round(random.uniform(40.0, 70.0), 1),    # 模拟湿度 40-70%
-        "co2_level": random.randint(400, 1500)
+        "heart_rate": random.randint(60, 100),
+        "sleep_hours": round(random.uniform(4, 9), 1),
+        "steps": random.randint(100, 15000), # 步数小代表久坐
+        "temperature": round(random.uniform(36.1, 37.2), 1),
+        "room_temp": round(random.uniform(28.0, 32.0) if is_bad_env else random.uniform(20.0, 26.0), 1),
+        "humidity": round(random.uniform(75.0, 90.0) if is_bad_env else random.uniform(40.0, 60.0), 1),
+        "co2_level": random.randint(1200, 2500) if is_bad_env else random.randint(400, 800)
     }
     return data
 
