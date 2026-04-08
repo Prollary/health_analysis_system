@@ -16,7 +16,7 @@ def get_cloud_ai_advice(heart_rate, sleep, steps, room_temp, co2):
     """
     
     try:
-        resp = chat_comp.do(model="ERNIE-Bot-4", messages=[{"role": "user", "content": prompt}])
+        resp = chat_comp.do(model="ERNIE-Speed-128K", messages=[{"role": "user", "content": prompt}])
         return resp.body['result']
     except Exception as e:
         return f"云端诊断服务暂时不可用 ({str(e)})"

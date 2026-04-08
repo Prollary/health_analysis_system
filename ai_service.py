@@ -1,12 +1,20 @@
 import numpy as np
+import pandas as pd
+import joblib
 
 def calculate_health_score(heart_rate, sleep_hours, steps, room_temp, humidity, co2_level, model):
     """
     输入实时数据，输出 AI 的诊断结果与健康分
     """
     # 构造特征矩阵
-    import numpy as np
-    features = np.array([[heart_rate, sleep_hours, steps, room_temp, humidity, co2_level]])
+    features = pd.DataFrame([{
+        'heart_rate': heart_rate,
+        'sleep_hours': sleep_hours,
+        'steps': steps,
+        'room_temp': room_temp,
+        'humidity': humidity,
+        'co2_level': co2_level
+    }])
 
     # 获取 AI 的预测分类 (0: 健康, 1: 亚健康, 2: 高风险)
     predicted_class = model.predict(features)[0]

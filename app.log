@@ -1,3 +1,7 @@
 2026-04-09 04:46:20,386 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
 2026-04-09 04:46:22,909 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
 2026-04-09 04:46:40,514 ERROR: 系统运行崩溃: X has 3 features, but RandomForestClassifier is expecting 6 features as input. [in D:\flask\health_analysis_system\app.py:137]
+2026-04-09 05:28:06,472 ERROR: 系统运行崩溃: name 'new_report' is not defined [in D:\flask\health_analysis_system\app.py:151]
+2026-04-09 05:28:50,016 ERROR: 系统运行崩溃: name 'new_report' is not defined [in D:\flask\health_analysis_system\app.py:151]
+2026-04-09 05:32:19,536 ERROR: 系统运行崩溃: name 'pd' is not defined [in D:\flask\health_analysis_system\app.py:150]
+2026-04-09 05:32:23,638 ERROR: 系统运行崩溃: name 'pd' is not defined [in D:\flask\health_analysis_system\app.py:150]

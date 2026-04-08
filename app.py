@@ -7,6 +7,7 @@ from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
 from cloud_ai_service import get_cloud_ai_advice
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -100,6 +101,9 @@ def analyze_health(user_id):
         co2_level=latest_data.co2_level,
         model=health_model
     )
+    combined_suggestion = analysis_result["suggestion"]
+    if analysis_result["linkage_analysis"]["env_suggestions"]:
+        combined_suggestion += "\n" + analysis_result["linkage_analysis"]["env_suggestions"][0]
 
     # 百度云端 AI 深度分析 
     cloud_report = get_cloud_ai_advice(
@@ -110,12 +114,8 @@ def analyze_health(user_id):
         latest_data.co2_level
     )
 
-    combined_suggestion = analysis_result["suggestion"]
-    if analysis_result["linkage_analysis"]["env_suggestions"]:
-        combined_suggestion += "\n" + analysis_result["linkage_analysis"]["env_suggestions"][0]
-
     # 持久化报告
-    nnew_report = HealthReport(
+    new_report = HealthReport(
         user_id=user_id,
         health_score=analysis_result["health_score"],
         risk_level=analysis_result["risk_level"],
