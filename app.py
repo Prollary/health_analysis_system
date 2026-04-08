@@ -1,15 +1,20 @@
-from flask import Flask, render_template
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import pandas as pd
+import sklearn
 
-# 初始化 Flask 实例
 app = Flask(__name__)
 
-# 定义路由：当访问网站首页 (/) 时执行函数
-@app.route('/')
-def index():
-    # 目前先返回一串文字，后期我们会通过 render_template 返回 HTML 页面
-    return "<h1>智慧家居健康分析系统</h1><p>后端基础架构已启动！</p>"
+# 暂时配置一个简单的数据库连接路径（后续会改为 MySQL）
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
+db = SQLAlchemy(app)
 
-# 启动服务器
+@app.route('/')
+def health_check():
+    # 验证 pandas 是否正常工作
+    data = {'指标': ['心率', '睡眠'], '数值': [75, 8]}
+    df = pd.DataFrame(data)
+    return f"系统运行中！Pandas 版本: {pd.__version__} | AI 模块已加载。"
+
 if __name__ == '__main__':
-    # debug=True 表示开启调试模式，修改代码后服务器会自动重启
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(debug=True)
