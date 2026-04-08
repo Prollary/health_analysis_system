@@ -23,10 +23,18 @@ class SensorData(db.Model):
     __tablename__ = 'sensor_data'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # --- 原有生理数据 ---
     heart_rate = db.Column(db.Integer)       # 心率
     sleep_hours = db.Column(db.Float)        # 睡眠时长
     steps = db.Column(db.Integer)            # 步数
     temperature = db.Column(db.Float)        # 体温
+    
+    # --- 新增：智慧家居环境数据 ---
+    room_temp = db.Column(db.Float)          # 卧室温度 (℃)
+    humidity = db.Column(db.Float)           # 相对湿度 (%)
+    co2_level = db.Column(db.Integer)        # CO2浓度 (ppm)
+    
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
 # 3. 健康报告表 (HealthReport)

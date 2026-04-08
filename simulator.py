@@ -12,7 +12,9 @@ def generate_mock_data(user_id=1):
         "heart_rate": random.randint(60, 100),       # 模拟心率在 60-100 之间波动
         "sleep_hours": round(random.uniform(5, 9), 1), # 模拟睡眠 5-9 小时
         "steps": random.randint(1000, 15000),         # 模拟步数
-        "temperature": round(random.uniform(36.1, 37.2), 1) # 模拟体温
+        "temperature": round(random.uniform(20.0, 30.0), 1), # 模拟室温 20-30度
+        "humidity": round(random.uniform(40.0, 70.0), 1),    # 模拟湿度 40-70%
+        "co2_level": random.randint(400, 1500)
     }
     return data
 

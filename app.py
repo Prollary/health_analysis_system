@@ -7,6 +7,8 @@ from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
 
+app = Flask(__name__)
+
 # 配置日志：记录到 app.log
 file_handler = RotatingFileHandler('app.log', maxBytes=1024 * 1024, backupCount=10)
 file_handler.setFormatter(logging.Formatter(
@@ -14,8 +16,6 @@ file_handler.setFormatter(logging.Formatter(
 ))
 file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
-
-app = Flask(__name__)
 
 # 1. 基础与数据库配置
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/smart_home_health'
@@ -81,7 +81,6 @@ def health_history_api():
 
 @app.route('/api/analyze/<int:user_id>', methods=['POST', 'GET'])
 def analyze_health(user_id):
-    """触发 AI 诊断，并保存健康报告"""
     if health_model is None:
         return jsonify({"code": 500, "msg": "AI 模型不可用"}), 500
 
@@ -90,27 +89,33 @@ def analyze_health(user_id):
     if not latest_data:
         return jsonify({"code": 404, "msg": "未找到该用户的体征数据，无法分析"}), 404
 
-    # 调用 AI 逻辑 (计算平滑的健康分)
+    # 调用 AI 逻辑
     analysis_result = calculate_health_score(
         heart_rate=latest_data.heart_rate,
         sleep_hours=latest_data.sleep_hours,
         steps=latest_data.steps,
+        room_temp=latest_data.room_temp,  # 传入室温
+        humidity=latest_data.humidity,    # 传入湿度
+        co2_level=latest_data.co2_level,  # 传入CO2
         model=health_model
     )
+    combined_suggestion = analysis_result["suggestion"]
+    if analysis_result["linkage_analysis"]["env_suggestions"]:
+        combined_suggestion += "\n" + analysis_result["linkage_analysis"]["env_suggestions"][0]
 
     # 持久化报告
     new_report = HealthReport(
         user_id=user_id,
         health_score=analysis_result["health_score"],
         risk_level=analysis_result["risk_level"],
-        ai_suggestion=analysis_result["suggestion"]
+        ai_suggestion=combined_suggestion
     )
     db.session.add(new_report)
     db.session.commit()
 
     return jsonify({
         "code": 200,
-        "msg": "AI 分析完成",
+        "msg": "AI 联动分析完成",
         "data": analysis_result
     })
 
