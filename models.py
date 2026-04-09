@@ -50,3 +50,23 @@ class HealthReport(db.Model):
     cloud_ai_report = db.Column(db.Text)   # 存储百度 AI 返回的深度建议
     risk_level = db.Column(db.String(20))    # 风险等级（低/中/高）
     created_at = db.Column(db.DateTime, default=datetime.now)
+
+# 4. 智能镜子面部情绪表 (FaceAnalysis)
+class FaceAnalysis(db.Model):
+    __tablename__ = 'face_analysis'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    emotion = db.Column(db.String(50))           # 识别出的情绪 (如：高兴、悲伤、愤怒、平静)
+    fatigue_index = db.Column(db.Float)          # 疲劳指数 (根据情绪和生理指标综合计算)
+    comprehensive_report = db.Column(db.Text)    # 结合血压/心率生成的身心综合报告
+    timestamp = db.Column(db.DateTime, default=datetime.now)
+
+# 5. 健康日记表 (HealthDiary)
+class HealthDiary(db.Model):
+    __tablename__ = 'health_diaries'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    raw_content = db.Column(db.Text, nullable=False)       # 老人输入的大白话原文本
+    extracted_symptoms = db.Column(db.String(255))         # AI 提取的症状实体 (如：头晕, 胸闷)
+    ai_advice = db.Column(db.Text)                         # AI 给出的就医建议
+    timestamp = db.Column(db.DateTime, default=datetime.now)

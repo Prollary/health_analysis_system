@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import joblib
 
+
 def calculate_health_score(heart_rate, sleep_hours, steps, room_temp, humidity, co2_level, model):
     """
     输入实时数据，输出 AI 的诊断结果与健康分

@@ -1,14 +1,15 @@
 import joblib
 from flask import Flask, request, jsonify, render_template
-from models import db, User, SensorData, HealthReport
+from models import db, User, SensorData, HealthReport, HealthDiary, FaceAnalysis
 from services import save_sensor_data, get_health_history, check_sos_condition
 from ai_service import calculate_health_score
 from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
-from cloud_ai_service import get_cloud_ai_advice
+from cloud_ai_service import get_cloud_ai_advice,parse_health_diary, analyze_face_emotion
 import pandas as pd
 from flask_mail import Mail, Message
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 
@@ -20,7 +21,7 @@ file_handler.setFormatter(logging.Formatter(
 file_handler.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 
-# 1. 基础与数据库配置
+# 基础与数据库配置
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/smart_home_health'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = 'smtp.qq.com' # 以QQ邮箱为例
@@ -32,7 +33,7 @@ app.config['MAIL_DEFAULT_SENDER'] = '你的邮箱@qq.com'
 
 mail = Mail(app)
 
-# 2. 加载 AI 模型
+# 加载 AI 模型
 try:
     health_model = joblib.load('health_model.pkl')
     print("✅ AI 模型加载成功，系统已就绪。")
@@ -40,7 +41,7 @@ except Exception as e:
     print(f"❌ 模型加载失败: {e}")
     health_model = None
 
-# 3. 数据库与初始数据加载
+# 数据库与初始数据加载
 db.init_app(app)
 
 with app.app_context():
@@ -55,7 +56,7 @@ with app.app_context():
         db.session.commit()
         print("✅ 初始用户(ID:1)创建成功！")
 
-# 4. 路由与 API 接口
+# 路由与 API 接口
 @app.route('/')
 def index():
     return "<h1>智慧家居健康系统 - 运行中</h1><p>数据正在后台源源不断地写入...</p>"
@@ -174,6 +175,81 @@ def monitor_member(member_id):
     pass
 
 
+
+# 健康日记接口
+@app.route('/api/diary/submit', methods=['POST'])
+def submit_diary():
+    data = request.get_json()
+    user_id = data.get('user_id', 1)
+    diary_text = data.get('content')
+
+    if not diary_text:
+        return jsonify({"code": 400, "msg": "日记内容不能为空"}), 400
+
+    # 调用千帆大模型解析
+    ai_result = parse_health_diary(diary_text)
+
+    # 存入数据库
+    new_diary = HealthDiary(
+        user_id=user_id,
+        raw_content=diary_text,
+        extracted_symptoms=ai_result.get("symptoms"),
+        ai_advice=ai_result.get("advice")
+    )
+    db.session.add(new_diary)
+    db.session.commit()
+
+    return jsonify({"code": 200, "msg": "解析成功", "data": ai_result})
+
+
+
+# 智能面部情绪接口
+@app.route('/api/vision/smart_mirror', methods=['POST'])
+def smart_mirror_analyze():
+    data = request.get_json()
+    user_id = data.get('user_id', 1)
+    base64_image = data.get('image') # 前端传来的 Base64 图像
+
+    if not base64_image:
+        return jsonify({"code": 400, "msg": "未接收到图像数据"}), 400
+
+    # 去除 base64 头部
+    if "," in base64_image:
+        base64_image = base64_image.split(",")[1]
+
+    # 调用百度视觉 API 获取情绪
+    face_res = analyze_face_emotion(base64_image)
+    if face_res["status"] != "success":
+        return jsonify({"code": 500, "msg": face_res["message"]}), 500
+    
+    emotion = face_res["emotion"]
+
+    # 从数据库获取今天的心率等生理数据，进行“多模态身心综合分析”
+    latest_sensor = SensorData.query.filter_by(user_id=user_id).order_by(SensorData.timestamp.desc()).first()
+    
+    # 疲劳/压力逻辑计算 (根据情绪 + 心率)
+    fatigue_index = 0
+    if emotion in ["悲伤", "愤怒", "厌恶"]: fatigue_index += 40
+    if latest_sensor and latest_sensor.heart_rate > 90: fatigue_index += 30
+    if latest_sensor and latest_sensor.sleep_hours < 6: fatigue_index += 30
+
+    report = f"【身心综合报告】您的面部情绪呈现'{emotion}'。当前疲劳/压力指数为 {fatigue_index}/100。"
+    if fatigue_index >= 70:
+        report += " 综合您的生理体征，判断您处于高压/深度疲劳状态，建议立即放下工作，进行深呼吸或听舒缓音乐放松。"
+
+    # 存入数据库
+    new_face_record = FaceAnalysis(
+        user_id=user_id,
+        emotion=emotion,
+        fatigue_index=fatigue_index,
+        comprehensive_report=report
+    )
+    db.session.add(new_face_record)
+    db.session.commit()
+
+    return jsonify({"code": 200, "msg": "分析成功", "data": {"emotion": emotion, "report": report}})
+
+
 # 全局处理 404 错误
 @app.errorhandler(404)
 def not_found(error):
@@ -191,4 +267,4 @@ def handle_exception(e):
     }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
