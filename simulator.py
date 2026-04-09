@@ -33,7 +33,7 @@ def start_simulation(interval=5):
     try:
         while True:
             # 1. 生成数据
-            payload = generate_mock_data(user_id=1)
+            payload = generate_mock_data(user_id=2)
             
             # 2. 发送 POST 请求
             try:

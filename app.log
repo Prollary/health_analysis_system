@@ -36,3 +36,21 @@
 2026-04-09 11:51:48,054 ERROR: 系统运行崩溃: 405 Method Not Allowed: The method is not allowed for the requested URL. [in D:\flask\health_analysis_system\app.py:262]
 2026-04-09 11:51:51,377 ERROR: 系统运行崩溃: 405 Method Not Allowed: The method is not allowed for the requested URL. [in D:\flask\health_analysis_system\app.py:262]
 2026-04-09 11:52:00,275 ERROR: 系统运行崩溃: 405 Method Not Allowed: The method is not allowed for the requested URL. [in D:\flask\health_analysis_system\app.py:262]
+2026-04-09 14:06:11,471 ERROR: 系统运行崩溃: name 'check_password_hash' is not defined [in D:\flask\health_analysis_system\app.py:441]
+2026-04-09 14:06:35,936 ERROR: 系统运行崩溃: name 'check_password_hash' is not defined [in D:\flask\health_analysis_system\app.py:441]
+2026-04-09 14:09:49,200 ERROR: 系统运行崩溃: (pymysql.err.DataError) (1406, "Data too long for column 'password_hash' at row 1")
+[SQL: INSERT INTO users (username, password_hash, age, gender, created_at, `role`, email, parent_id) VALUES (%(username)s, %(password_hash)s, %(age)s, %(gender)s, %(created_at)s, %(role)s, %(email)s, %(parent_id)s)]
+[parameters: {'username': 'root', 'password_hash': 'scrypt:32768:8:1$Na2l8qJvdmo1Ebv0$4ba069949d27eb4d7df4af48f81059731e0cfd713bc61810ee483ee224b9ea8fc382a63659df4ce221ae6a6d8a471f02667298b6e487740b4fee617731cc6086', 'age': None, 'gender': None, 'created_at': datetime.datetime(2026, 4, 9, 14, 9, 49, 197857), 'role': 'admin', 'email': None, 'parent_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h) [in D:\flask\health_analysis_system\app.py:441]
+2026-04-09 22:51:02,114 ERROR: 系统运行崩溃: (pymysql.err.DataError) (1406, "Data too long for column 'password_hash' at row 1")
+[SQL: INSERT INTO users (username, password_hash, age, gender, created_at, `role`, email, parent_id) VALUES (%(username)s, %(password_hash)s, %(age)s, %(gender)s, %(created_at)s, %(role)s, %(email)s, %(parent_id)s)]
+[parameters: {'username': 'root', 'password_hash': 'scrypt:32768:8:1$TmoJoKrOtxvT3Q9B$629cabc28c3af46fa4d63860bbe38127be86234dd14ba4e1cab005f70c756d16ed84da6b55b8390ed3ec79a3f5134851b2f1a6c66027b35147aa279d63f39c65', 'age': None, 'gender': None, 'created_at': datetime.datetime(2026, 4, 9, 22, 51, 2, 112731), 'role': 'admin', 'email': None, 'parent_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h) [in D:\flask\health_analysis_system\app.py:441]
+2026-04-09 22:53:32,642 ERROR: 系统运行崩溃: (pymysql.err.DataError) (1406, "Data too long for column 'password_hash' at row 1")
+[SQL: INSERT INTO users (username, password_hash, age, gender, created_at, `role`, email, parent_id) VALUES (%(username)s, %(password_hash)s, %(age)s, %(gender)s, %(created_at)s, %(role)s, %(email)s, %(parent_id)s)]
+[parameters: {'username': 'root', 'password_hash': 'scrypt:32768:8:1$qqBAzPgQgDV92jt3$9e693eb77f67967be6145efd62e01df89b5114054edc38a3c8ec1ace7a61eeb30ec4b0eef6ebe7a9344f0cca936a50574484aa046a6359c88176e3c25c1b9f71', 'age': None, 'gender': None, 'created_at': datetime.datetime(2026, 4, 9, 22, 53, 32, 641480), 'role': 'admin', 'email': None, 'parent_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h) [in D:\flask\health_analysis_system\app.py:442]
+2026-04-09 22:56:43,825 ERROR: 系统运行崩溃: (pymysql.err.DataError) (1406, "Data too long for column 'password_hash' at row 1")
+[SQL: INSERT INTO users (username, password_hash, age, gender, created_at, `role`, email, parent_id) VALUES (%(username)s, %(password_hash)s, %(age)s, %(gender)s, %(created_at)s, %(role)s, %(email)s, %(parent_id)s)]
+[parameters: {'username': 'root', 'password_hash': 'scrypt:32768:8:1$sR0vcBQd5zh9k0SX$7e990ad7d637dc8d3559dbb3d5a1abb80714ebc0098093787d7a2ef0cfb4e736a93f8a127b3d86d4c92ac2a9180632119086e1a1d90faadcad275e549f6f852e', 'age': None, 'gender': None, 'created_at': datetime.datetime(2026, 4, 9, 22, 56, 43, 824797), 'role': 'admin', 'email': None, 'parent_id': None}]
+(Background on this error at: https://sqlalche.me/e/20/9h9h) [in D:\flask\health_analysis_system\app.py:442]

@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # 初始化数据库对象
 db = SQLAlchemy()
@@ -9,7 +10,7 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     age = db.Column(db.Integer)
     gender = db.Column(db.String(10))
     created_at = db.Column(db.DateTime, default=datetime.now)
@@ -18,12 +19,17 @@ class User(db.Model):
     email = db.Column(db.String(120)) # 用于接收告警的邮箱
     # 记录该成员所属的管理员 ID
     parent_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
     # 建立与数据和报告的关联关系
     sensor_data = db.relationship('SensorData', backref='user', lazy=True)
     reports = db.relationship('HealthReport', backref='user', lazy=True)
     # 建立自关联关系
     family_members = db.relationship('User', backref=db.backref('parent', remote_side=[id]))
+    # 加密密码（哈希）
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    # 校验密码
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
 # 2. 设备数据表 (SensorData)
 class SensorData(db.Model):
