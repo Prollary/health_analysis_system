@@ -105,3 +105,37 @@ def validate_health_data(data):
         return False, "步数不能为负数"
         
     return True, "校验通过"
+
+
+
+def check_sos_condition(user, data):
+    """
+    SOS 哨兵：检测是否存在生命体征危机
+    """
+    hr = data.get('heart_rate', 70)
+    is_sos = False
+    reason = ""
+
+    # 1. 极端心率拦截 (强规则)
+    if hr > 130:
+        is_sos = True
+        reason = f"危险：检测到心率过快 ({hr} bpm)！"
+    elif hr < 40:
+        is_sos = True
+        reason = f"危险：检测到心率过低 ({hr} bpm)！"
+
+    # 2. 如果触发 SOS 且用户有绑定的管理员
+    if is_sos and user.parent and user.parent.email:
+        send_sos_email(user.parent.email, user.username, reason)
+        return True, reason
+    
+    return False, ""
+
+def send_sos_email(target_email, member_name, reason):
+    """发送告警邮件"""
+    from app import mail # 延迟导入避免循环依赖
+    msg = Message("【紧急告警】智慧家居健康舱提醒",
+                  recipients=[target_email])
+    msg.body = f"尊敬的家属：\n系统检测到您的家庭成员 {member_name} 的健康指标出现异常！\n异常详情：{reason}\n请立即确认其安全状态或联系社区医生。"
+    # 注意：在生产中建议使用异步发送，这里演示同步逻辑
+    mail.send(msg)

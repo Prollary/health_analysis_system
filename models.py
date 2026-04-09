@@ -13,10 +13,17 @@ class User(db.Model):
     age = db.Column(db.Integer)
     gender = db.Column(db.String(10))
     created_at = db.Column(db.DateTime, default=datetime.now)
+    # role: 'admin' (子女/管理员), 'member' (老人/被监护人)
+    role = db.Column(db.String(20), default='member') 
+    email = db.Column(db.String(120)) # 用于接收告警的邮箱
+    # 记录该成员所属的管理员 ID
+    parent_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     # 建立与数据和报告的关联关系
     sensor_data = db.relationship('SensorData', backref='user', lazy=True)
     reports = db.relationship('HealthReport', backref='user', lazy=True)
+    # 建立自关联关系
+    family_members = db.relationship('User', backref=db.backref('parent', remote_side=[id]))
 
 # 2. 设备数据表 (SensorData)
 class SensorData(db.Model):

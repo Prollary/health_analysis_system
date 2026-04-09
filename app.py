@@ -1,13 +1,14 @@
 import joblib
 from flask import Flask, request, jsonify, render_template
 from models import db, User, SensorData, HealthReport
-from services import save_sensor_data, get_health_history
+from services import save_sensor_data, get_health_history, check_sos_condition
 from ai_service import calculate_health_score
 from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
 from cloud_ai_service import get_cloud_ai_advice
 import pandas as pd
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
@@ -22,6 +23,14 @@ app.logger.addHandler(file_handler)
 # 1. 基础与数据库配置
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@localhost:3306/smart_home_health'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['MAIL_SERVER'] = 'smtp.qq.com' # 以QQ邮箱为例
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = '你的邮箱@qq.com'
+app.config['MAIL_PASSWORD'] = '你的授权码' # 注意不是登录密码
+app.config['MAIL_DEFAULT_SENDER'] = '你的邮箱@qq.com'
+
+mail = Mail(app)
 
 # 2. 加载 AI 模型
 try:
@@ -67,9 +76,19 @@ def upload_data():
         return jsonify({"code": 400, "msg": "未接收到 JSON 数据"}), 400
 
     success, message = save_sensor_data(json_data)
+    
     if success:
-        return jsonify({"code": 200, "msg": message}), 200
-    return jsonify({"code": 500, "msg": message}), 500
+        # --- SOS 实时检测 ---
+        from models import User
+        current_user = User.query.get(json_data['user_id'])
+        is_sos, sos_msg = check_sos_condition(current_user, json_data)
+        
+        return jsonify({
+            "code": 200, 
+            "msg": message,
+            "sos_alert": is_sos, # 前端是否需要闪烁红色警报
+            "sos_msg": sos_msg
+        }), 200
 
 @app.route('/api/health/history')
 def health_history_api():
@@ -137,6 +156,22 @@ def analyze_health(user_id):
 def dashboard():
     """渲染前端控制台页面"""
     return render_template('dashboard.html')
+
+
+@app.route('/api/family/members')
+def get_family_members():
+    """获取管理员名下的所有家庭成员列表"""
+    admin_id = 1 # 暂定
+    admin = User.query.get(admin_id)
+    members = [{"id": m.id, "name": m.username} for m in admin.family_members]
+    return jsonify(members)
+
+@app.route('/api/family/monitor/<int:member_id>')
+def monitor_member(member_id):
+    """管理员切换查看特定成员的数据"""
+    # 逻辑复用 /api/health/history
+    # 在前端传参时改变 ID 即可
+    pass
 
 
 # 全局处理 404 错误
