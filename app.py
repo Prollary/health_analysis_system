@@ -1,15 +1,16 @@
 import joblib
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from models import db, User, SensorData, HealthReport, HealthDiary, FaceAnalysis
 from services import save_sensor_data, get_health_history, check_sos_condition
 from ai_service import calculate_health_score
 from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
-from cloud_ai_service import get_cloud_ai_advice,parse_health_diary, analyze_face_emotion
+from cloud_ai_service import get_cloud_ai_advice,parse_health_diary, analyze_face_emotion, generate_detailed_intervention
 import pandas as pd
 from flask_mail import Mail, Message
 from werkzeug.exceptions import HTTPException
+from pdf_service import export_health_report_pdf
 
 app = Flask(__name__)
 
@@ -249,6 +250,38 @@ def smart_mirror_analyze():
 
     return jsonify({"code": 200, "msg": "分析成功", "data": {"emotion": emotion, "report": report}})
 
+# 生成包含深度干预方案的正式报告
+@app.route('/api/health/report/generate/<int:user_id>')
+def generate_full_report(user_id):
+    user = User.query.get(user_id)
+    latest_data = SensorData.query.filter_by(user_id=user_id).order_by(SensorData.timestamp.desc()).first()
+    
+    # 1. 调用百度 AI 生成干预方案
+    profile = {'age': user.age, 'gender': user.gender}
+    analysis = {
+        'risk_level': '高风险', # 假设逻辑
+        'heart_rate': latest_data.heart_rate,
+        'sleep': latest_data.sleep_hours,
+        'steps': latest_data.steps
+    }
+    detailed_plan = generate_detailed_intervention(profile, analysis)
+    
+    # 2. 存入数据库
+    report = HealthReport(user_id=user_id, cloud_ai_report=detailed_plan)
+    db.session.add(report)
+    db.session.commit()
+    
+    return jsonify({"code": 200, "msg": "方案已生成", "plan": detailed_plan})
+
+# 下载 PDF 报表
+@app.route('/api/health/report/download/<int:user_id>')
+def download_pdf(user_id):
+    # 准备数据...
+    output_file = f"static/reports/report_{user_id}.pdf"
+    # 调用 pdf_service 生成文件
+    export_health_report_pdf("张三", {}, "AI 详细内容", output_file)
+    
+    return send_file(output_file, as_attachment=True)
 
 # 全局处理 404 错误
 @app.errorhandler(404)

@@ -4,6 +4,8 @@ import json
 import qianfan
 from dotenv import load_dotenv
 
+load_dotenv()  # 加载.env
+
 # 基于环境和人体数据的大模型分析
 def get_cloud_ai_advice(heart_rate, sleep, steps, room_temp, co2):
     """
@@ -65,7 +67,6 @@ def get_vision_access_token():
 def analyze_face_emotion(base64_image):
     """
     调用百度人脸识别 API，返回面部情绪
-    注意：base64_image 不包含 'data:image/jpeg;base64,' 前缀
     """
     token = get_vision_access_token()
     if not token:
@@ -92,3 +93,29 @@ def analyze_face_emotion(base64_image):
         return {"status": "success", "emotion": emotion_map.get(en_emotion, en_emotion)}
     else:
         return {"status": "error", "message": response.get("error_msg")}
+
+
+
+def generate_detailed_intervention(user_profile, analysis_data):
+    """
+    根据用户画像（年龄、性别、风险等级）生成 1000 字以上的深度干预方案
+    """
+    chat_comp = qianfan.ChatCompletion()
+    
+    prompt = f"""
+    你是一位资深的临床营养师和运动康复专家。请为以下用户定制一份详尽的【健康干预方案】。
+    
+    用户画像：年龄{user_profile['age']}岁，性别{user_profile['gender']}，当前健康风险等级：{analysis_data['risk_level']}。
+    最新指标：心率{analysis_data['heart_rate']}bpm，睡眠{analysis_data['sleep']}h，步数{analysis_data['steps']}。
+    
+    请严格按以下要求生成内容：
+    1. 【个性化饮食推荐】：要求包含“为什么要吃这个食物”、“该怎么吃”、“含有哪些核心营养素”。排版美观，不少于 500 中文字符。
+    2. 【定制化运动处方】：要求包含“为什么做这个运动”、“该怎么做”、“对身体的具体好处”。排版美观，不少于 500 中文字符。
+    3. 语气要专业且富有亲和力，使用结构化的 Markdown 标题。
+    """
+    
+    try:
+        resp = chat_comp.do(model="ERNIE-Bot-4", messages=[{"role": "user", "content": prompt}])
+        return resp.body['result']
+    except Exception as e:
+        return f"干预方案生成失败: {str(e)}"
