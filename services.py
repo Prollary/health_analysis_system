@@ -1,4 +1,4 @@
-from models import db, SensorData
+from models import db, SensorData, HealthReport
 from datetime import datetime, timedelta
 
 # 解析 JSON 数据并存入 SensorData 表
@@ -9,10 +9,10 @@ def save_sensor_data(data):
             heart_rate=data['heart_rate'],
             sleep_hours=data['sleep_hours'],
             steps=data['steps'],
-            temperature=data.get('temperature', 36.5),
-            room_temp=data.get('room_temp', 25.0),
-            humidity=data.get('humidity', 50.0),
-            co2_level=data.get('co2_level', 400)
+            temperature=data.get('temperature') if data.get('temperature') is not None else 36.5,
+            room_temp=data.get('room_temp') if data.get('room_temp') is not None else 25.0,
+            humidity=data.get('humidity') if data.get('humidity') is not None else 50.0,
+            co2_level=data.get('co2_level') if data.get('co2_level') is not None else 400
         )
         db.session.add(new_record)
         db.session.commit()
@@ -30,17 +30,33 @@ def get_health_history(user_id, days=7):
             SensorData.timestamp >= start_time
         ).order_by(SensorData.timestamp.asc()).all()
 
-        # 返回行对象数组，前端直接按字段名访问
+        # 预取该用户所有报告（按时间升序），用于与传感器记录匹配最近的健康评分
+        reports = HealthReport.query.filter_by(user_id=user_id)\
+            .order_by(HealthReport.created_at.asc()).all()
+
+        # 为每条传感器记录找离它最近（且不晚于它）的一条报告
+        def nearest_report(sensor_ts):
+            matched = None
+            for rp in reports:
+                if rp.created_at <= sensor_ts:
+                    matched = rp
+                else:
+                    break
+            return matched
+
         data = [
             {
-                "timestamp":   r.timestamp.strftime('%m-%d %H:%M'),
-                "heart_rate":  r.heart_rate,
-                "sleep_hours": r.sleep_hours,
-                "steps":       r.steps,
-                "temperature": r.temperature,
-                "room_temp":   r.room_temp,
-                "humidity":    r.humidity,
-                "co2_level":   r.co2_level,
+                "timestamp":    r.timestamp.strftime('%m-%d %H:%M'),
+                "heart_rate":   r.heart_rate,
+                "sleep_hours":  r.sleep_hours,
+                "steps":        r.steps,
+                "temperature":  r.temperature,
+                "room_temp":    r.room_temp,
+                "humidity":     r.humidity,
+                "co2_level":    r.co2_level,
+                # 关联最近报告的评分字段
+                "health_score": (lambda rp: rp.health_score if rp else None)(nearest_report(r.timestamp)),
+                "risk_level":   (lambda rp: rp.risk_level   if rp else None)(nearest_report(r.timestamp)),
             }
             for r in records
         ]

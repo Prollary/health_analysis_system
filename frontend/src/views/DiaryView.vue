@@ -77,7 +77,7 @@
               </div>
             </div>
             <p class="tl-content">{{ item.raw_content }}</p>
-            <p v-if="item.ai_advice" class="tl-advice">💡 {{ item.ai_advice?.slice(0, 80) }}...</p>
+            <p v-if="item.ai_advice" class="tl-advice">💡 {{ item.ai_advice.slice(0, 80) }}...</p>
           </div>
         </div>
       </div>

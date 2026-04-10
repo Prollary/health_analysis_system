@@ -39,19 +39,19 @@
         <div class="profile-items">
           <div class="profile-item">
             <span class="pi-label">当前心率</span>
-            <span class="pi-val red">{{ latestData?.heart_rate || '--' }} bpm</span>
+            <span class="pi-val red">{{ latestData && latestData.heart_rate || '--' }} bpm</span>
           </div>
           <div class="profile-item">
             <span class="pi-label">昨晚睡眠</span>
-            <span class="pi-val">{{ latestData?.sleep_hours?.toFixed(1) || '--' }} h</span>
+            <span class="pi-val">{{ latestData && latestData.sleep_hours && latestData.sleep_hours.toFixed(1) || '--' }} h</span>
           </div>
           <div class="profile-item">
             <span class="pi-label">今日步数</span>
-            <span class="pi-val">{{ latestData?.steps?.toLocaleString() || '--' }}</span>
+            <span class="pi-val">{{ formatSteps(latestData) }}</span>
           </div>
           <div class="profile-item">
             <span class="pi-label">风险等级</span>
-            <span class="pi-val" :class="`risk-${latestData?.risk_level}`">{{ latestData?.risk_level || '--' }}</span>
+            <span class="pi-val" :class="`risk-${latestData && latestData.risk_level}`">{{ latestData && latestData.risk_level || '--' }}</span>
           </div>
         </div>
         <div class="sos-status" :class="sosStore.triggered ? 'danger' : 'safe'">
@@ -146,6 +146,11 @@ function selectMember(id, name) {
   selectedId.value = id
   selectedName.value = name
   loadData()
+}
+
+function formatSteps(data) {
+  if (!data?.steps) return '--'
+  return data.steps.toLocaleString()
 }
 
 async function loadData() {

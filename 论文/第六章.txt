@@ -1,0 +1,31 @@
+第六章  参考文献
+
+[1] 赵沁平, 郝爱民, 彭晓兰, 等. 虚实融合的智慧健康养老服务关键技术综述[J]. 计算机学报, 2022, 45(10): 2071-2090.
+（来源：中国知网 CNKI，DOI：10.11897/SP.J.1016.2022.02071）
+
+[2] 孙毅, 李涛, 王志良. 面向居家养老的智能健康监护系统设计与实现[J]. 计算机应用研究, 2021, 38(6): 1856-1861.
+（来源：中国知网 CNKI，DOI：10.19734/j.issn.1001-3695.2020.09.0350）
+
+[3] 张伟, 刘宇, 陈晓东. 基于机器学习的慢性病风险预测模型研究综述[J]. 中国卫生信息管理杂志, 2023, 20(3): 321-328.
+（来源：中国知网 CNKI，ISSN：1672-5166）
+
+[4] 李晓明, 徐宗本. 人工智能在医疗健康领域的应用与挑战[J]. 中国科学院院刊, 2021, 36(2): 130-139.
+（来源：中国科学院院刊官方网站，DOI：10.16418/j.issn.1000-3045.20201210002）
+
+[5] 国家标准化管理委员会. 室内空气质量标准：GB/T 18883-2022[S]. 北京：中国标准出版社, 2022.
+（来源：国家市场监督管理总局/国家标准化管理委员会官方发布）
+
+[6] 王小宁, 张健, 曹雪涛. 基于深度学习的可穿戴设备心律异常实时检测方法[J]. 自动化学报, 2022, 48(5): 1289-1300.
+（来源：中国知网 CNKI，DOI：10.16383/j.aas.c200568）
+
+[7] Consolvo S, McDonald D W, Toscos T, et al. Activity sensing in the wild: a field trial of ubifit garden[C]. Proceedings of the SIGCHI Conference on Human Factors in Computing Systems. ACM, 2008: 1797-1806.
+（来源：ACM Digital Library，DOI：10.1145/1357054.1357335）
+
+[8] Topol E J. High-performance medicine: the convergence of human and artificial intelligence[J]. Nature Medicine, 2019, 25(1): 44-56.
+（来源：Nature Medicine，DOI：10.1038/s41591-018-0300-7）
+
+[9] Gyrard A, Datta S K, Bonnet C, et al. Reusing and unifying background knowledge for Internet of Things with LOV4IoT[C]. Proceedings of the 2016 IEEE 4th International Conference on Future Internet of Things and Cloud. IEEE, 2016: 277-284.
+（来源：IEEE Xplore，DOI：10.1109/FiCloud.2016.47）
+
+[10] Chen M, Hao Y, Hwang K, et al. Disease prediction by machine learning over big data from healthcare communities[J]. IEEE Access, 2017, 5: 8869-8879.
+（来源：IEEE Access，DOI：10.1109/ACCESS.2017.2694446）

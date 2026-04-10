@@ -102,28 +102,40 @@ const historyData = ref([])
 
 const envKpi = computed(() => {
   if (!historyData.value.length) return { temp: '--', humidity: '--', co2: '--', tempSub: '', humiditySub: '', co2Sub: '', tempClass: '', humidityClass: '', co2Class: '' }
-  const latest = historyData.value[historyData.value.length - 1]
-  const temp = latest.room_temp?.toFixed(1)
-  const hum = latest.humidity?.toFixed(0)
-  const co2 = latest.co2_level
+
+  // 从尾部向前找第一条各字段不为 null 的记录（兼容旧数据库记录）
+  const arr = [...historyData.value].reverse()
+  const tempVal = (arr.find(d => d.room_temp  != null)?.room_temp  != null) ? parseFloat(arr.find(d => d.room_temp  != null).room_temp)  : null
+  const humVal  = (arr.find(d => d.humidity   != null)?.humidity   != null) ? parseFloat(arr.find(d => d.humidity   != null).humidity)   : null
+  const co2Val  = (arr.find(d => d.co2_level  != null)?.co2_level  != null) ? parseInt(arr.find(d  => d.co2_level  != null).co2_level)   : null
+
+  // 显示用字符串
+  const temp = tempVal != null ? tempVal.toFixed(1) : '--'
+  const hum  = humVal  != null ? humVal.toFixed(0)  : '--'
+  const co2  = co2Val  != null ? co2Val              : '--'
+
   return {
     temp, humidity: hum, co2,
-    tempSub: temp > 26 ? '偏高，影响睡眠 ⚠' : temp < 18 ? '偏低 ⚠' : '舒适范围',
-    tempClass: (temp > 26 || temp < 18) ? 'warn' : 'ok',
-    humiditySub: hum >= 40 && hum <= 65 ? '湿度适宜' : '湿度异常 ⚠',
-    humidityClass: (hum >= 40 && hum <= 65) ? 'ok' : 'warn',
-    co2Sub: co2 > 1000 ? '严重偏高 ⚠' : co2 > 800 ? '偏高，建议通风' : '空气质量良好',
-    co2Class: co2 > 1000 ? 'danger' : co2 > 800 ? 'warn' : 'ok'
+    // 全部用数值变量比较，避免字符串比较陷阱
+    tempSub:      tempVal == null ? '' : tempVal > 26 ? '偏高，影响睡眠 ⚠' : tempVal < 18 ? '偏低 ⚠' : '舒适范围',
+    tempClass:    tempVal == null ? '' : (tempVal > 26 || tempVal < 18) ? 'warn' : 'ok',
+    humiditySub:  humVal  == null ? '' : (humVal >= 40 && humVal <= 65) ? '湿度适宜' : '湿度异常 ⚠',
+    humidityClass:humVal  == null ? '' : (humVal >= 40 && humVal <= 65) ? 'ok' : 'warn',
+    co2Sub:       co2Val  == null ? '' : co2Val > 1000 ? '严重偏高 ⚠' : co2Val > 800 ? '偏高，建议通风' : '空气质量良好',
+    co2Class:     co2Val  == null ? '' : co2Val > 1000 ? 'danger' : co2Val > 800 ? 'warn' : 'ok'
   }
 })
 
 const alerts = computed(() => {
   if (!historyData.value.length) return {}
-  const latest = historyData.value[historyData.value.length - 1]
+  const arr = [...historyData.value].reverse()
+  const latest   = historyData.value[historyData.value.length - 1]
+  const co2Val   = arr.find(d => d.co2_level != null)?.co2_level
+  const tempVal  = arr.find(d => d.room_temp != null)?.room_temp
   return {
-    sedentary: latest.steps < 200,
-    co2High: latest.co2_level > 800,
-    tempBad: latest.room_temp > 26 || latest.room_temp < 18
+    sedentary: latest.steps != null && latest.steps < 200,
+    co2High:   co2Val  != null && co2Val  > 800,
+    tempBad:   tempVal != null && (tempVal > 26 || tempVal < 18)
   }
 })
 

@@ -56,6 +56,14 @@
               <label><i class="fa-solid fa-temperature-half"></i> 卧室温度</label>
               <input v-model.number="form.room_temp" type="number" step="0.1" placeholder="例: 24" min="10" max="40" />
             </div>
+            <div class="field-group">
+              <label><i class="fa-solid fa-droplet"></i> 相对湿度</label>
+              <input v-model.number="form.humidity" type="number" step="1" placeholder="例: 50" min="0" max="100" />
+            </div>
+            <div class="field-group">
+              <label><i class="fa-solid fa-wind"></i> CO₂ 浓度</label>
+              <input v-model.number="form.co2_level" type="number" placeholder="例: 400" min="0" />
+            </div>
           </div>
           <button type="submit" class="btn-primary" :disabled="analyzing">
             <LoadingSpinner v-if="analyzing" height="20px" text="" />
@@ -66,14 +74,14 @@
         <Transition name="fade">
           <div v-if="analysisResult" class="analysis-result">
             <div class="score-ring" :style="{ '--score-color': scoreColor }">
-              <span class="score-num">{{ analysisResult.local?.health_score }}</span>
+              <span class="score-num">{{ healthScore }}</span>
               <span class="score-label">健康分</span>
             </div>
             <div class="result-detail">
-              <div class="risk-tag" :class="`risk-${analysisResult.local?.risk_level}`">
-                {{ analysisResult.local?.risk_level }}
+              <div class="risk-tag" :class="'risk-' + riskLevel">
+                {{ riskLevel }}
               </div>
-              <p class="suggestion-text">{{ analysisResult.local?.suggestion }}</p>
+              <p class="suggestion-text">{{ suggestion }}</p>
             </div>
           </div>
         </Transition>
@@ -82,7 +90,7 @@
       <!-- 云端 AI 建议 -->
       <div class="card cloud-ai">
         <div class="card-header">
-          <h2><i class="fa-solid fa-cloud-bolt"></i> 百度千帆 · 深度报告</h2>
+          <h2><i class="fa-solid fa-cloud-bolt"></i> DeepSeek · 深度报告</h2>
           <button class="btn-outline sm" @click="generateFullReport" :disabled="generating">
             <i class="fa-solid fa-list-check"></i> 生成干预方案
           </button>
@@ -161,6 +169,11 @@ const scoreColor = computed(() => {
   if (s >= 60) return '#ffa726'
   return '#ff4757'
 })
+
+const localResult = computed(() => analysisResult.value?.local || {})
+const riskLevel = computed(() => localResult.value.risk_level || '')
+const suggestion = computed(() => localResult.value.suggestion || '')
+const healthScore = computed(() => localResult.value.health_score || '--')
 
 const pdfUrl = computed(() => healthApi.getPdfUrl(familyStore.getTargetUserId()))
 

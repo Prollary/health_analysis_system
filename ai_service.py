@@ -93,32 +93,37 @@ def analyze_environment_linkage(temp, humidity, co2, steps, sleep_hours):
 
 def analyze_env_linkage(sleep_hours, steps, room_temp, humidity, co2_level):
     """
-    生理数据与家居环境的联动分析引擎
+    生理数据与家居环境的联动分析引擎（所有入参做 None 容错）
     """
+    # 用安全默认值替换 None，防止 NoneType 与数值比较崩溃
+    sleep_hours = sleep_hours if sleep_hours is not None else 7.0
+    steps       = steps       if steps       is not None else 5000
+    room_temp   = room_temp   if room_temp   is not None else 22.0
+    humidity    = humidity    if humidity    is not None else 50.0
+    co2_level   = co2_level   if co2_level   is not None else 500
+
     suggestions = []
-    alerts = [] # 用于标记需要强制弹窗的严重预警
+    alerts = []
 
     # 1. 睡眠与温度联动分析
     if sleep_hours < 6.5:
         if room_temp > 26.0:
-            suggestions.append("🌡️ 【环境-睡眠联动】检测到室温偏高（>26℃）且您处于睡眠不足状态。建议今晚开启空调睡眠模式（24-26℃），有助于延长深度睡眠。")
+            suggestions.append("【环境-睡眠联动】检测到室温偏高（>26℃）且您处于睡眠不足状态。建议今晚开启空调睡眠模式（24-26℃），有助于延长深度睡眠。")
         elif room_temp < 18.0:
-            suggestions.append("❄️ 【环境-睡眠联动】检测到室温偏低（<18℃），易导致肌肉紧绷和频繁起夜。建议适当开启暖气或增加被褥。")
+            suggestions.append("【环境-睡眠联动】检测到室温偏低（<18℃），易导致肌肉紧绷和频繁起夜。建议适当开启暖气或增加被褥。")
 
     # 2. 久坐与室内空气联动预警
-    # 设定：步数极少代表处于静坐/办公状态，此时高CO2极易引发疲劳
     if steps < 500 and co2_level > 1000:
-        alert_msg = f"⚠️ 【久坐缺氧预警】您近期活动量极少，且室内CO2浓度高达 {co2_level}ppm！极易引发大脑缺氧、头晕和疲劳，请立即开窗通风并起身活动！"
+        alert_msg = f"【久坐缺氧预警】您近期活动量极少，且室内CO2浓度高达 {co2_level}ppm！极易引发大脑缺氧、头晕和疲劳，请立即开窗通风并起身活动！"
         suggestions.append(alert_msg)
         alerts.append("high_co2_sedentary")
-    
+
     # 3. 湿度与体感舒适度
     if humidity > 70.0:
-        suggestions.append("💧 【环境舒适度】室内湿度过高，易滋生霉菌并加重体感闷热，建议开启抽湿设备。")
+        suggestions.append("【环境舒适度】室内湿度过高，易滋生霉菌并加重体感闷热，建议开启抽湿设备。")
 
-    # 如果没有触发任何警报，给一个基础安抚
     if not suggestions:
-        suggestions.append("🌱 当前家居环境适宜，各项生理指标与环境处于良好平衡状态。")
+        suggestions.append("当前家居环境适宜，各项生理指标与环境处于良好平衡状态。")
 
     return {
         "env_suggestions": suggestions,

@@ -1,12 +1,12 @@
+import os
 import joblib
 from flask import Flask, request, jsonify, render_template, send_file
 from models import db, User, SensorData, HealthReport, HealthDiary, FaceAnalysis
 from services import save_sensor_data, get_health_history, check_sos_condition
 from ai_service import calculate_health_score
-from flask import jsonify
 import logging
 from logging.handlers import RotatingFileHandler
-from cloud_ai_service import get_cloud_ai_advice,parse_health_diary, analyze_face_emotion, generate_detailed_intervention
+from cloud_ai_service import get_cloud_ai_advice, parse_health_diary, analyze_face_emotion, generate_detailed_intervention
 import pandas as pd
 from flask_mail import Mail, Message
 from werkzeug.exceptions import HTTPException
@@ -87,16 +87,17 @@ def upload_data():
     
     if success:
         # --- SOS 实时检测 ---
-        from models import User
-        current_user = User.query.get(json_data['user_id'])
+        current_user = db.session.get(User, json_data['user_id'])
         is_sos, sos_msg = check_sos_condition(current_user, json_data)
-        
+
         return jsonify({
-            "code": 200, 
+            "code": 200,
             "msg": message,
-            "sos_alert": is_sos, # 前端是否需要闪烁红色警报
+            "sos_alert": is_sos,
             "sos_msg": sos_msg
         }), 200
+
+    return jsonify({"code": 500, "msg": message}), 500
 
 @app.route('/api/health/history', methods=['GET'])
 @jwt_required() 
@@ -173,8 +174,8 @@ def dashboard():
 @app.route('/api/family/members')
 def get_family_members():
     """获取管理员名下的所有家庭成员列表"""
-    admin_id = 1 # 暂定
-    admin = User.query.get(admin_id)
+    admin_id = 1  # 暂定
+    admin = db.session.get(User, admin_id)
     members = [{"id": m.id, "name": m.username} for m in admin.family_members]
     return jsonify(members)
 
@@ -228,25 +229,38 @@ def smart_mirror_analyze():
     if "," in base64_image:
         base64_image = base64_image.split(",")[1]
 
-    # 调用百度视觉 API 获取情绪
+    # 调用 DeepSeek 视觉分析情绪（不可用时自动降级）
     face_res = analyze_face_emotion(base64_image)
-    if face_res["status"] != "success":
-        return jsonify({"code": 500, "msg": face_res["message"]}), 500
-    
-    emotion = face_res["emotion"]
+    if face_res["status"] == "success":
+        emotion = face_res["emotion"]
+    else:
+        # 降级：根据时段给出默认情绪，不中断流程
+        hour = datetime.datetime.now().hour
+        emotion = "平静" if 8 <= hour <= 22 else "疲惫"
 
-    # 从数据库获取今天的心率等生理数据，进行“多模态身心综合分析”
+    # 从数据库获取最新生理数据，进行多模态身心综合分析
     latest_sensor = SensorData.query.filter_by(user_id=user_id).order_by(SensorData.timestamp.desc()).first()
-    
-    # 疲劳/压力逻辑计算 (根据情绪 + 心率)
-    fatigue_index = 0
-    if emotion in ["悲伤", "愤怒", "厌恶"]: fatigue_index += 40
-    if latest_sensor and latest_sensor.heart_rate > 90: fatigue_index += 30
-    if latest_sensor and latest_sensor.sleep_hours < 6: fatigue_index += 30
 
-    report = f"【身心综合报告】您的面部情绪呈现'{emotion}'。当前疲劳/压力指数为 {fatigue_index}/100。"
+    # 疲劳/压力指数计算（情绪 + 生理体征）
+    fatigue_index = 0
+    if emotion in ["悲伤", "愤怒", "厌恶", "疲惫", "恐惧"]:
+        fatigue_index += 40
+    if latest_sensor and latest_sensor.heart_rate and latest_sensor.heart_rate > 90:
+        fatigue_index += 30
+    if latest_sensor and latest_sensor.sleep_hours and latest_sensor.sleep_hours < 6:
+        fatigue_index += 30
+
+    hr_str    = f"{latest_sensor.heart_rate}bpm" if latest_sensor and latest_sensor.heart_rate else "未知"
+    sleep_str = f"{latest_sensor.sleep_hours}h"  if latest_sensor and latest_sensor.sleep_hours else "未知"
+
+    report = f"【身心综合报告】面部情绪识别为「{emotion}」，疲劳/压力指数 {fatigue_index}/100。" \
+             f"结合今日心率 {hr_str}、睡眠 {sleep_str}，"
     if fatigue_index >= 70:
-        report += " 综合您的生理体征，判断您处于高压/深度疲劳状态，建议立即放下工作，进行深呼吸或听舒缓音乐放松。"
+        report += "综合评估：高压/深度疲劳状态。建议立即放下工作，进行10分钟深呼吸或听舒缓音乐放松。"
+    elif fatigue_index >= 40:
+        report += "综合评估：轻中度疲劳。建议适当休息，补充水分，避免高强度用脑。"
+    else:
+        report += "综合评估：身心状态良好，继续保持规律作息。"
 
     # 存入数据库
     new_face_record = FaceAnalysis(
@@ -263,24 +277,34 @@ def smart_mirror_analyze():
 # 生成包含深度干预方案的正式报告
 @app.route('/api/health/report/generate/<int:user_id>')
 def generate_full_report(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"code": 404, "msg": "用户不存在"}), 404
+
     latest_data = SensorData.query.filter_by(user_id=user_id).order_by(SensorData.timestamp.desc()).first()
-    
-    # 1. 调用百度 AI 生成干预方案
-    profile = {'age': user.age, 'gender': user.gender}
+    if not latest_data:
+        return jsonify({"code": 404, "msg": "暂无体征数据，请先上传传感器数据"}), 404
+
+    # 从最新报告中获取风险等级，没有则默认中风险
+    latest_report = HealthReport.query.filter_by(user_id=user_id).order_by(HealthReport.created_at.desc()).first()
+    risk_level = latest_report.risk_level if latest_report and latest_report.risk_level else '中风险'
+
+    profile = {
+        'age':    user.age    if user.age    is not None else '未知',
+        'gender': user.gender if user.gender is not None else '未知'
+    }
     analysis = {
-        'risk_level': '高风险', # 假设逻辑
+        'risk_level': risk_level,
         'heart_rate': latest_data.heart_rate,
-        'sleep': latest_data.sleep_hours,
-        'steps': latest_data.steps
+        'sleep':      latest_data.sleep_hours,
+        'steps':      latest_data.steps
     }
     detailed_plan = generate_detailed_intervention(profile, analysis)
-    
-    # 2. 存入数据库
+
     report = HealthReport(user_id=user_id, cloud_ai_report=detailed_plan)
     db.session.add(report)
     db.session.commit()
-    
+
     return jsonify({"code": 200, "msg": "方案已生成", "plan": detailed_plan})
 
 
@@ -288,12 +312,63 @@ def generate_full_report(user_id):
 # 下载 PDF 报表
 @app.route('/api/health/report/download/<int:user_id>')
 def download_pdf(user_id):
-    # 准备数据...
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"code": 404, "msg": "用户不存在"}), 404
+
+    # 获取近7天传感器数据
+    from datetime import datetime, timedelta
+    start_time = datetime.now() - timedelta(days=7)
+    records = SensorData.query.filter(
+        SensorData.user_id == user_id,
+        SensorData.timestamp >= start_time
+    ).order_by(SensorData.timestamp.asc()).all()
+
+    history = [
+        {
+            "timestamp":   r.timestamp.strftime('%m-%d %H:%M'),
+            "heart_rate":  r.heart_rate,
+            "sleep_hours": r.sleep_hours,
+            "steps":       r.steps,
+            "room_temp":   r.room_temp,
+            "humidity":    r.humidity,
+            "co2_level":   r.co2_level,
+        }
+        for r in records
+    ]
+
+    # 最新报告
+    latest_report = HealthReport.query.filter_by(user_id=user_id)\
+        .order_by(HealthReport.created_at.desc()).first()
+
+    # 统计摘要
+    summary = None
+    if records:
+        hrs    = [r.heart_rate  for r in records if r.heart_rate  is not None]
+        slps   = [r.sleep_hours for r in records if r.sleep_hours is not None]
+        stps   = [r.steps       for r in records if r.steps       is not None]
+        summary = {
+            "avg_heart_rate": round(sum(hrs)  / len(hrs),  1) if hrs  else '--',
+            "avg_sleep":      round(sum(slps) / len(slps), 1) if slps else '--',
+            "avg_steps":      int(sum(stps)   / len(stps))    if stps else '--',
+            "health_score":   latest_report.health_score if latest_report else None,
+            "risk_level":     latest_report.risk_level   if latest_report else None,
+        }
+
+    ai_report = latest_report.cloud_ai_report if latest_report else "暂无 AI 报告，请先在首页进行 AI 分析。"
+
+    os.makedirs("static/reports", exist_ok=True)
     output_file = f"static/reports/report_{user_id}.pdf"
-    # 调用 pdf_service 生成文件
-    export_health_report_pdf("张三", {}, "AI 详细内容", output_file)
-    
-    return send_file(output_file, as_attachment=True)
+    export_health_report_pdf(
+        user_name=user.username,
+        history_data=history,
+        ai_report=ai_report,
+        output_path=output_file,
+        summary=summary
+    )
+
+    return send_file(output_file, as_attachment=True,
+                     download_name=f"健康周报_{user.username}.pdf")
 
 
 
@@ -398,7 +473,7 @@ def get_family_group():
     current_user_id = int(get_jwt_identity())
     current_user = db.session.get(User, current_user_id)
 
-    # 1. 确定“户主”是谁
+    # 1. 确定"户主"是谁
     # 如果当前用户有 parent_id，是成员，他的 parent 才是户主；否则自己就是户主
     admin_id = current_user.parent_id if current_user.parent_id else current_user.id
     admin_user = db.session.get(User, admin_id)

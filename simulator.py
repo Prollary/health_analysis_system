@@ -5,7 +5,7 @@ import random
 # Flask 服务器的地址
 URL = "http://127.0.0.1:5000/api/sensor/upload"
 
-def generate_mock_data(user_id=1):
+def generate_mock_data(user_id=2):
     """随机生成包含环境数据的健康体征"""
     # 模拟环境状态（有概率生成高CO2或异常温度以测试AI告警）
     is_bad_env = random.choice([True, False]) 
@@ -33,7 +33,7 @@ def start_simulation(interval=5):
     try:
         while True:
             # 1. 生成数据
-            payload = generate_mock_data(user_id=2)
+            payload = generate_mock_data(user_id=1)
             
             # 2. 发送 POST 请求
             try:
