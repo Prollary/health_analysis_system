@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>系统总体架构图 — HealthAI 智慧家居健康分析系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f4f8;
+    font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 32px 20px 48px;
+  }
+  h1 {
+    font-size: 18px; font-weight: 700; color: #1e293b;
+    margin-bottom: 6px; letter-spacing: 1px;
+  }
+  .subtitle { font-size: 12px; color: #64748b; margin-bottom: 32px; }
+
+  svg { filter: drop-shadow(0 4px 24px rgba(0,0,0,0.10)); }
+</style>
+</head>
+<body>
+<h1>《基于Flask与AI技术的智慧家居健康分析系统》系统总体架构图</h1>
+<p class="subtitle">四层架构 · API 调用与数据流向</p>
+
+<svg width="900" height="780" viewBox="0 0 900 780" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 各层渐变 -->
+    <linearGradient id="gLayer1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#bfdbfe"/>
+    </linearGradient>
+    <linearGradient id="gLayer2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#dcfce7"/><stop offset="100%" stop-color="#bbf7d0"/>
+    </linearGradient>
+    <linearGradient id="gLayer3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef9c3"/><stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+    <linearGradient id="gLayer4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fce7f3"/><stop offset="100%" stop-color="#fbcfe8"/>
+    </linearGradient>
+    <!-- 模块渐变 -->
+    <linearGradient id="gMod1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#eff6ff"/><stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="gMod2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4"/><stop offset="100%" stop-color="#dcfce7"/>
+    </linearGradient>
+    <linearGradient id="gMod3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fefce8"/><stop offset="100%" stop-color="#fef9c3"/>
+    </linearGradient>
+    <linearGradient id="gMod4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fdf4ff"/><stop offset="100%" stop-color="#fae8ff"/>
+    </linearGradient>
+    <!-- 外部API渐变 -->
+    <linearGradient id="gExt" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff7ed"/><stop offset="100%" stop-color="#fed7aa"/>
+    </linearGradient>
+
+    <!-- 箭头marker -->
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f97316"/>
+    </marker>
+    <marker id="arrowBlueSm" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#60a5fa"/>
+    </marker>
+
+    <!-- 投影 -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!--  背景白卡                                           -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <rect x="10" y="10" width="880" height="760" rx="16" fill="white" filter="url(#shadow)"/>
+
+  <!-- ════════════ 第一层：展示层 ═══════════════════════ -->
+  <rect x="30" y="28" width="840" height="148" rx="12" fill="url(#gLayer1)" stroke="#93c5fd" stroke-width="1.5"/>
+  <!-- 层标签 -->
+  <rect x="30" y="28" width="100" height="148" rx="12" fill="#3b82f6"/>
+  <rect x="118" y="28" width="12" height="148" fill="#3b82f6"/>
+  <text x="80" y="90" text-anchor="middle" fill="white" font-size="13" font-weight="700">展示层</text>
+  <text x="80" y="108" text-anchor="middle" fill="#bfdbfe" font-size="10">Vue 3</text>
+  <text x="80" y="122" text-anchor="middle" fill="#bfdbfe" font-size="10">ECharts 5</text>
+  <text x="80" y="136" text-anchor="middle" fill="#bfdbfe" font-size="10">Pinia · Router</text>
+
+  <!-- 展示层模块 -->
+  <!-- 登录 -->
+  <rect x="140" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="187" y="64" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">登录/注册</text>
+  <text x="187" y="80" text-anchor="middle" fill="#3b82f6" font-size="9">LoginView</text>
+
+  <!-- 仪表盘 -->
+  <rect x="244" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="291" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">健康仪表盘</text>
+  <text x="291" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">折线图·雷达图</text>
+  <text x="291" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">DashboardView</text>
+
+  <!-- 环境 -->
+  <rect x="348" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="395" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">环境监测</text>
+  <text x="395" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">温湿度·CO₂</text>
+  <text x="395" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">EnvironmentView</text>
+
+  <!-- 智能镜 -->
+  <rect x="452" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="499" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">智能镜</text>
+  <text x="499" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">情绪分析</text>
+  <text x="499" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">MirrorView</text>
+
+  <!-- 亲情关怀 -->
+  <rect x="556" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="603" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">亲情关怀</text>
+  <text x="603" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">家庭成员管理</text>
+  <text x="603" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">CareView</text>
+
+  <!-- 健康日记 + 周报 -->
+  <rect x="660" y="42" width="94" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="707" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">健康日记</text>
+  <text x="707" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">NLP解析</text>
+  <text x="707" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">DiaryView</text>
+
+  <!-- 周报PDF -->
+  <rect x="764" y="42" width="90" height="52" rx="8" fill="url(#gMod1)" stroke="#93c5fd" stroke-width="1"/>
+  <text x="809" y="61" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">健康周报</text>
+  <text x="809" y="75" text-anchor="middle" fill="#3b82f6" font-size="9">PDF导出</text>
+  <text x="809" y="87" text-anchor="middle" fill="#3b82f6" font-size="9">ReportView</text>
+
+  <!-- 技术标签行 -->
+  <text x="450" y="118" text-anchor="middle" fill="#1d4ed8" font-size="10" font-weight="600">技术栈：Vue 3 Composition API · Pinia状态管理 · Vue Router · ECharts 5 · Axios · localStorage JWT缓存</text>
+  <text x="450" y="133" text-anchor="middle" fill="#3b82f6" font-size="9">◆ setInterval 5s 轮询刷新 · 响应式布局 · 组件化开发</text>
+  <text x="450" y="148" text-anchor="middle" fill="#3b82f6" font-size="9">◆ pywebview 原生桌面窗口（无需浏览器）</text>
+
+  <!-- ════════════ 层间箭头①：展示层 → 业务层 ════════════ -->
+  <!-- 双向箭头中轴 -->
+  <line x1="450" y1="176" x2="450" y2="224" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <line x1="440" y1="224" x2="440" y2="176" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+  <!-- 标注 -->
+  <rect x="460" y="185" width="130" height="26" rx="5" fill="#eff6ff" stroke="#93c5fd" stroke-width="1"/>
+  <text x="525" y="197" text-anchor="middle" fill="#1d4ed8" font-size="10" font-weight="700">HTTP / Axios REST</text>
+  <text x="525" y="207" text-anchor="middle" fill="#3b82f6" font-size="9">Authorization: Bearer JWT</text>
+  <!-- 响应标注 -->
+  <rect x="310" y="185" width="118" height="26" rx="5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="369" y="197" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">← JSON Response</text>
+  <text x="369" y="207" text-anchor="middle" fill="#94a3b8" font-size="9">{ status, data, message }</text>
+
+  <!-- ════════════ 第二层：业务层 ═══════════════════════ -->
+  <rect x="30" y="228" width="840" height="148" rx="12" fill="url(#gLayer2)" stroke="#86efac" stroke-width="1.5"/>
+  <rect x="30" y="228" width="100" height="148" rx="12" fill="#16a34a"/>
+  <rect x="118" y="228" width="12" height="148" fill="#16a34a"/>
+  <text x="80" y="286" text-anchor="middle" fill="white" font-size="13" font-weight="700">业务逻辑层</text>
+  <text x="80" y="304" text-anchor="middle" fill="#bbf7d0" font-size="10">Flask 3.x</text>
+  <text x="80" y="318" text-anchor="middle" fill="#bbf7d0" font-size="10">JWT 认证</text>
+  <text x="80" y="332" text-anchor="middle" fill="#bbf7d0" font-size="10">REST API</text>
+
+  <!-- 业务模块 -->
+  <rect x="140" y="242" width="104" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="192" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">用户认证</text>
+  <text x="192" y="275" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/login</text>
+  <text x="192" y="287" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/register</text>
+  <text x="192" y="299" text-anchor="middle" fill="#16a34a" font-size="9">@jwt_required()</text>
+
+  <rect x="254" y="242" width="104" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="306" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">健康数据 API</text>
+  <text x="306" y="275" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/data</text>
+  <text x="306" y="287" text-anchor="middle" fill="#16a34a" font-size="9">GET /api/history</text>
+  <text x="306" y="299" text-anchor="middle" fill="#16a34a" font-size="9">GET /api/report</text>
+
+  <rect x="368" y="242" width="104" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="420" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">AI 分析 API</text>
+  <text x="420" y="275" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/generate_report</text>
+  <text x="420" y="287" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/smart_mirror</text>
+  <text x="420" y="299" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/diary/parse</text>
+
+  <rect x="482" y="242" width="104" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="534" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">SOS 预警</text>
+  <text x="534" y="275" text-anchor="middle" fill="#16a34a" font-size="9">心率阈值检测</text>
+  <text x="534" y="287" text-anchor="middle" fill="#16a34a" font-size="9">Flask-Mail SMTP</text>
+  <text x="534" y="299" text-anchor="middle" fill="#16a34a" font-size="9">家属邮件告警</text>
+
+  <rect x="596" y="242" width="104" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="648" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">PDF 生成</text>
+  <text x="648" y="275" text-anchor="middle" fill="#16a34a" font-size="9">GET /api/download_pdf</text>
+  <text x="648" y="287" text-anchor="middle" fill="#16a34a" font-size="9">WeasyPrint</text>
+  <text x="648" y="299" text-anchor="middle" fill="#16a34a" font-size="9">Jinja2 模板渲染</text>
+
+  <rect x="710" y="242" width="140" height="56" rx="8" fill="url(#gMod2)" stroke="#86efac" stroke-width="1"/>
+  <text x="780" y="261" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600">家庭角色管理</text>
+  <text x="780" y="275" text-anchor="middle" fill="#16a34a" font-size="9">GET /api/family/members</text>
+  <text x="780" y="287" text-anchor="middle" fill="#16a34a" font-size="9">POST /api/family/bind</text>
+  <text x="780" y="299" text-anchor="middle" fill="#16a34a" font-size="9">Admin / Member 双角色</text>
+
+  <text x="450" y="333" text-anchor="middle" fill="#15803d" font-size="10" font-weight="600">技术栈：Flask 3.x · Flask-JWT-Extended · Flask-Mail · Flask-SQLAlchemy · python-dotenv</text>
+  <text x="450" y="348" text-anchor="middle" fill="#16a34a" font-size="9">◆ JWT Bearer Token鉴权 · PBKDF2-SHA256密码哈希 · RotatingFileHandler日志 · 统一JSON异常响应</text>
+
+  <!-- ════════════ 层间箭头②：业务层 → 数据处理层 ═══════ -->
+  <line x1="450" y1="376" x2="450" y2="424" stroke="#16a34a" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <line x1="440" y1="424" x2="440" y2="376" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+  <rect x="460" y="385" width="118" height="26" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="519" y="397" text-anchor="middle" fill="#15803d" font-size="10" font-weight="700">函数调用 / 模块导入</text>
+  <text x="519" y="407" text-anchor="middle" fill="#16a34a" font-size="9">services.py · ai_service.py</text>
+  <rect x="318" y="385" width="114" height="26" rx="5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="375" y="397" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">← 结构化结果返回</text>
+  <text x="375" y="407" text-anchor="middle" fill="#94a3b8" font-size="9">score · risk_level · advice</text>
+
+  <!-- ════════════ 第三层：数据处理层 ══════════════════ -->
+  <rect x="30" y="428" width="840" height="148" rx="12" fill="url(#gLayer3)" stroke="#fde047" stroke-width="1.5"/>
+  <rect x="30" y="428" width="100" height="148" rx="12" fill="#ca8a04"/>
+  <rect x="118" y="428" width="12" height="148" fill="#ca8a04"/>
+  <text x="80" y="486" text-anchor="middle" fill="white" font-size="13" font-weight="700">数据处理层</text>
+  <text x="80" y="504" text-anchor="middle" fill="#fef08a" font-size="10">校验 + AI</text>
+  <text x="80" y="518" text-anchor="middle" fill="#fef08a" font-size="10">特征工程</text>
+  <text x="80" y="532" text-anchor="middle" fill="#fef08a" font-size="10">推理引擎</text>
+
+  <!-- 数据处理模块 -->
+  <rect x="140" y="442" width="124" height="60" rx="8" fill="url(#gMod3)" stroke="#fde047" stroke-width="1"/>
+  <text x="202" y="461" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">数据校验</text>
+  <text x="202" y="475" text-anchor="middle" fill="#ca8a04" font-size="9">validate_health_data()</text>
+  <text x="202" y="487" text-anchor="middle" fill="#ca8a04" font-size="9">心率 30~220 bpm</text>
+  <text x="202" y="499" text-anchor="middle" fill="#ca8a04" font-size="9">睡眠 0~24h · 步数≥0</text>
+
+  <rect x="274" y="442" width="134" height="60" rx="8" fill="url(#gMod3)" stroke="#fde047" stroke-width="1"/>
+  <text x="341" y="461" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">本地 ML 模型</text>
+  <text x="341" y="475" text-anchor="middle" fill="#ca8a04" font-size="9">scikit-learn 随机森林</text>
+  <text x="341" y="487" text-anchor="middle" fill="#ca8a04" font-size="9">health_model.pkl</text>
+  <text x="341" y="499" text-anchor="middle" fill="#ca8a04" font-size="9">输出: 健康评分 + 风险等级</text>
+
+  <rect x="418" y="442" width="144" height="60" rx="8" fill="url(#gMod3)" stroke="#fde047" stroke-width="1"/>
+  <text x="490" y="461" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">DeepSeek LLM API</text>
+  <text x="490" y="475" text-anchor="middle" fill="#ca8a04" font-size="9">cloud_ai_service.py</text>
+  <text x="490" y="487" text-anchor="middle" fill="#ca8a04" font-size="9">深度报告 / 日记解析</text>
+  <text x="490" y="499" text-anchor="middle" fill="#ca8a04" font-size="9">情绪分析 / 干预方案</text>
+
+  <rect x="572" y="442" width="134" height="60" rx="8" fill="url(#gMod3)" stroke="#fde047" stroke-width="1"/>
+  <text x="639" y="461" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">环境关联分析</text>
+  <text x="639" y="475" text-anchor="middle" fill="#ca8a04" font-size="9">ai_service.py</text>
+  <text x="639" y="487" text-anchor="middle" fill="#ca8a04" font-size="9">CO₂ · 温湿度 规则引擎</text>
+  <text x="639" y="499" text-anchor="middle" fill="#ca8a04" font-size="9">GB/T 18883 阈值评级</text>
+
+  <rect x="716" y="442" width="134" height="60" rx="8" fill="url(#gMod3)" stroke="#fde047" stroke-width="1"/>
+  <text x="783" y="461" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">特征工程</text>
+  <text x="783" y="475" text-anchor="middle" fill="#ca8a04" font-size="9">pandas / numpy</text>
+  <text x="783" y="487" text-anchor="middle" fill="#ca8a04" font-size="9">均值·趋势·异常检测</text>
+  <text x="783" y="499" text-anchor="middle" fill="#ca8a04" font-size="9">近7日汇总统计</text>
+
+  <text x="450" y="533" text-anchor="middle" fill="#92400e" font-size="10" font-weight="600">技术栈：scikit-learn 1.7 · pandas · numpy · openai SDK (DeepSeek兼容) · joblib</text>
+  <text x="450" y="548" text-anchor="middle" fill="#ca8a04" font-size="9">◆ 双层AI架构：本地推理（&lt;5ms）+ 云端LLM（深度分析）· None值安全兜底 · 降级容错</text>
+
+  <!-- ════════════ 层间箭头③：数据处理层 → 存储层 ══════ -->
+  <line x1="450" y1="576" x2="450" y2="614" stroke="#ca8a04" stroke-width="2" marker-end="url(#arrowOrange)"/>
+  <line x1="440" y1="614" x2="440" y2="576" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+  <rect x="460" y="582" width="120" height="26" rx="5" fill="#fefce8" stroke="#fde047" stroke-width="1"/>
+  <text x="520" y="594" text-anchor="middle" fill="#92400e" font-size="10" font-weight="700">SQLAlchemy ORM</text>
+  <text x="520" y="604" text-anchor="middle" fill="#ca8a04" font-size="9">db.session.add / commit</text>
+  <rect x="320" y="582" width="112" height="26" rx="5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="376" y="594" text-anchor="middle" fill="#64748b" font-size="10" font-weight="600">← Query / filter()</text>
+  <text x="376" y="604" text-anchor="middle" fill="#94a3b8" font-size="9">Model.query.filter(...)</text>
+
+  <!-- ════════════ 第四层：存储层 ══════════════════════ -->
+  <rect x="30" y="618" width="840" height="122" rx="12" fill="url(#gLayer4)" stroke="#f9a8d4" stroke-width="1.5"/>
+  <rect x="30" y="618" width="100" height="122" rx="12" fill="#be185d"/>
+  <rect x="118" y="618" width="12" height="122" fill="#be185d"/>
+  <text x="80" y="670" text-anchor="middle" fill="white" font-size="13" font-weight="700">数据存储层</text>
+  <text x="80" y="688" text-anchor="middle" fill="#fbcfe8" font-size="10">MySQL 8.0</text>
+  <text x="80" y="702" text-anchor="middle" fill="#fbcfe8" font-size="10">SQLAlchemy</text>
+  <text x="80" y="716" text-anchor="middle" fill="#fbcfe8" font-size="10">ORM 映射</text>
+
+  <!-- 数据表 -->
+  <rect x="140" y="630" width="155" height="70" rx="8" fill="url(#gMod4)" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="217" y="649" text-anchor="middle" fill="#86198f" font-size="11" font-weight="700">User 用户表</text>
+  <text x="217" y="663" text-anchor="middle" fill="#a21caf" font-size="9">id · username · password_hash</text>
+  <text x="217" y="675" text-anchor="middle" fill="#a21caf" font-size="9">age · gender · role</text>
+  <text x="217" y="687" text-anchor="middle" fill="#a21caf" font-size="9">parent_id (家庭树形关联)</text>
+
+  <rect x="305" y="630" width="175" height="70" rx="8" fill="url(#gMod4)" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="392" y="649" text-anchor="middle" fill="#86198f" font-size="11" font-weight="700">SensorData 体征表</text>
+  <text x="392" y="663" text-anchor="middle" fill="#a21caf" font-size="9">user_id · timestamp</text>
+  <text x="392" y="675" text-anchor="middle" fill="#a21caf" font-size="9">heart_rate · sleep_hours · steps</text>
+  <text x="392" y="687" text-anchor="middle" fill="#a21caf" font-size="9">room_temp · humidity · co2_level</text>
+
+  <rect x="490" y="630" width="175" height="70" rx="8" fill="url(#gMod4)" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="577" y="649" text-anchor="middle" fill="#86198f" font-size="11" font-weight="700">HealthReport 报告表</text>
+  <text x="577" y="663" text-anchor="middle" fill="#a21caf" font-size="9">user_id · created_at</text>
+  <text x="577" y="675" text-anchor="middle" fill="#a21caf" font-size="9">health_score · risk_level</text>
+  <text x="577" y="687" text-anchor="middle" fill="#a21caf" font-size="9">ai_advice (AI建议全文)</text>
+
+  <rect x="675" y="630" width="175" height="70" rx="8" fill="url(#gMod4)" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="762" y="649" text-anchor="middle" fill="#86198f" font-size="11" font-weight="700">HealthDiary 日记表</text>
+  <text x="762" y="663" text-anchor="middle" fill="#a21caf" font-size="9">user_id · created_at · content</text>
+  <text x="762" y="675" text-anchor="middle" fill="#a21caf" font-size="9">emotion · symptoms · activity</text>
+  <text x="762" y="687" text-anchor="middle" fill="#a21caf" font-size="9">parsed_json (结构化解析)</text>
+
+  <text x="450" y="720" text-anchor="middle" fill="#86198f" font-size="10" font-weight="600">技术栈：MySQL 8.0 · SQLAlchemy 2.x ORM · PyMySQL 驱动 · db.create_all() 自动建表</text>
+
+  <!-- ════════════ 外部系统：DeepSeek API ════════════════ -->
+  <rect x="30" y="370" width="140" height="52" rx="8" fill="url(#gExt)" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="100" y="390" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="700">DeepSeek API</text>
+  <text x="100" y="404" text-anchor="middle" fill="#ea580c" font-size="9">api.deepseek.com</text>
+  <text x="100" y="416" text-anchor="middle" fill="#ea580c" font-size="9">deepseek-chat · HTTPS</text>
+
+  <!-- 连线: 数据处理层 ↔ DeepSeek -->
+  <path d="M 418 472 Q 270 472 200 422" stroke="#f97316" stroke-width="1.8" stroke-dasharray="6,4" fill="none" marker-end="url(#arrowOrange)"/>
+  <path d="M 200 396 Q 270 440 390 460" stroke="#94a3b8" stroke-width="1.3" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowGray)"/>
+
+  <!-- 外部系统：SMTP邮件 -->
+  <rect x="30" y="436" width="100" height="42" rx="8" fill="#fff7ed" stroke="#fb923c" stroke-width="1.5"/>
+  <text x="80" y="453" text-anchor="middle" fill="#c2410c" font-size="10" font-weight="700">SMTP 邮件</text>
+  <text x="80" y="466" text-anchor="middle" fill="#ea580c" font-size="9">smtp.qq.com:465</text>
+
+  <!-- ════════════ 图例 ════════════════════════════════ -->
+  <rect x="30" y="748" width="840" height="22" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="50" y1="759" x2="80" y2="759" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="85" y="763" fill="#64748b" font-size="10">数据下行</text>
+  <line x1="145" y1="759" x2="175" y2="759" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowGray)"/>
+  <text x="180" y="763" fill="#64748b" font-size="10">数据上行/返回</text>
+  <line x1="265" y1="759" x2="295" y2="759" stroke="#f97316" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrowOrange)"/>
+  <text x="300" y="763" fill="#64748b" font-size="10">外部HTTPS调用</text>
+  <text x="600" y="763" fill="#94a3b8" font-size="10">© HealthAI 智慧家居健康分析系统 · 系统总体架构图</text>
+</svg>
+
+</body>
+</html>

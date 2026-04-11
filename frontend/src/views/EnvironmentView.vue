@@ -88,11 +88,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import KpiCard from '@/components/common/KpiCard.vue'
 import { healthApi } from '@/api'
+import { useFamilyStore } from '@/stores/family'
 
+const familyStore = useFamilyStore()
 const loading = ref(true)
 const scatterEl = ref(null)
 const envTrendEl = ref(null)
@@ -154,7 +156,7 @@ const envTips = computed(() => {
 async function loadData() {
   loading.value = true
   try {
-    const res = await healthApi.getHistory()
+    const res = await healthApi.getHistory(familyStore.getTargetUserId())
     historyData.value = res
     await renderCharts(res)
   } catch (e) {
@@ -163,6 +165,11 @@ async function loadData() {
     loading.value = false
   }
 }
+
+// 响应 family 成员切换，重新加载
+watch(() => familyStore.currentMemberId, () => {
+  loadData()
+})
 
 async function renderCharts(data) {
   await new Promise(r => setTimeout(r, 100))

@@ -78,7 +78,7 @@
 
     <!-- 加载占位 -->
     <div v-if="generating" class="card">
-      <LoadingSpinner text="百度千帆大模型深度分析中，请稍候..." height="140px" />
+      <LoadingSpinner text="DeepSeek大模型深度分析中，请稍候..." height="140px" />
     </div>
 
     <!-- 历史报告列表 -->
@@ -142,13 +142,13 @@ const scoreColor = computed(() => getScoreColor(weekScore.value))
 // 干预方案解析（从百度AI返回的大段文本中分段）
 const dietPlan = computed(() => {
   if (!interventionPlan.value) return ''
-  const idx = interventionPlan.value.indexOf('饮食')
-  const idx2 = interventionPlan.value.indexOf('运动')
+  const idx = interventionPlan.value.indexOf('=====【饮食专区】=====')
+  const idx2 = interventionPlan.value.indexOf('=====【运动专区】=====')
   return idx !== -1 && idx2 !== -1 ? interventionPlan.value.slice(idx, idx2) : interventionPlan.value.slice(0, Math.floor(interventionPlan.value.length / 2))
 })
 const exercisePlan = computed(() => {
   if (!interventionPlan.value) return ''
-  const idx = interventionPlan.value.indexOf('运动')
+  const idx = interventionPlan.value.indexOf('=====【运动专区】=====')
   return idx !== -1 ? interventionPlan.value.slice(idx) : interventionPlan.value.slice(Math.floor(interventionPlan.value.length / 2))
 })
 
@@ -161,7 +161,7 @@ function getScoreColor(score) {
 
 function formatDate(ts) {
   if (!ts) return '--'
-  return (ts.slice ? ts.slice(0, 10) : String(ts))
+  return String(ts)
 }
 
 function formatPlan(text) {
@@ -170,11 +170,16 @@ function formatPlan(text) {
 
 async function loadData() {
   try {
-    const res = await healthApi.getHistory()
+    const res = await healthApi.getHistory(familyStore.getTargetUserId())
     historyData.value = res
     renderScoreChart(res)
   } catch (e) { console.error(e) }
 }
+
+// 响应家庭成员切换
+watch(() => familyStore.currentMemberId, () => {
+  loadData()
+})
 
 async function generateReport() {
   generating.value = true

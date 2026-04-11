@@ -4,7 +4,7 @@ import router from '@/router'
 
 const http = axios.create({
   baseURL: '/api',
-  timeout: 30000
+  timeout: 120000 // 设为 120 秒，给 AI 留下充足的生成时间
 })
 
 // 请求拦截器：自动附加 JWT Token
@@ -32,13 +32,15 @@ http.interceptors.response.use(
 // ==================== 认证模块 ====================
 export const authApi = {
   login: (data) => http.post('/auth/login', data),
-  register: (data) => http.post('/auth/register', data)
+  register: (data) => http.post('/auth/register', data),
+  getProfile: () => http.get('/auth/profile'),
+  updateProfile: (data) => http.put('/auth/profile', data)
 }
 
 // ==================== 健康数据模块 ====================
 export const healthApi = {
   // 获取历史体征数据（JWT保护，自动从Token读取user_id）
-  getHistory: () => http.get('/health/history'),
+  getHistory: (userId) => http.get('/health/history', userId ? { params: { user_id: userId } } : {}),
 
   // 触发AI分析
   analyze: (userId) => http.post(`/analyze/${userId}`),
@@ -58,7 +60,9 @@ export const sensorApi = {
 // ==================== 家庭成员模块 ====================
 export const familyApi = {
   getMembers: () => http.get('/family/members'),
-  monitorMember: (memberId) => http.get(`/family/monitor/${memberId}`)
+  monitorMember: (memberId) => http.get(`/family/monitor/${memberId}`),
+  addMember: (username) => http.post('/family/add_member', { username }),
+  getGroup: () => http.get('/family/group')
 }
 
 // ==================== 健康日记模块 ====================

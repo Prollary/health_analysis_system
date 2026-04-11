@@ -30,33 +30,27 @@ def get_health_history(user_id, days=7):
             SensorData.timestamp >= start_time
         ).order_by(SensorData.timestamp.asc()).all()
 
-        # 预取该用户所有报告（按时间升序），用于与传感器记录匹配最近的健康评分
-        reports = HealthReport.query.filter_by(user_id=user_id)\
-            .order_by(HealthReport.created_at.asc()).all()
+        # 取该用户最新一条报告，所有传感器记录共用同一份最新评分
+        latest_report = HealthReport.query.filter_by(user_id=user_id)\
+            .order_by(HealthReport.created_at.desc()).first()
 
-        # 为每条传感器记录找离它最近（且不晚于它）的一条报告
-        def nearest_report(sensor_ts):
-            matched = None
-            for rp in reports:
-                if rp.created_at <= sensor_ts:
-                    matched = rp
-                else:
-                    break
-            return matched
+        score      = latest_report.health_score  if latest_report else None
+        risk       = latest_report.risk_level    if latest_report else None
+        suggestion = latest_report.ai_suggestion if latest_report else None
 
         data = [
             {
-                "timestamp":    r.timestamp.strftime('%m-%d %H:%M'),
-                "heart_rate":   r.heart_rate,
-                "sleep_hours":  r.sleep_hours,
-                "steps":        r.steps,
-                "temperature":  r.temperature,
-                "room_temp":    r.room_temp,
-                "humidity":     r.humidity,
-                "co2_level":    r.co2_level,
-                # 关联最近报告的评分字段
-                "health_score": (lambda rp: rp.health_score if rp else None)(nearest_report(r.timestamp)),
-                "risk_level":   (lambda rp: rp.risk_level   if rp else None)(nearest_report(r.timestamp)),
+                "timestamp":     r.timestamp.strftime('%m-%d %H:%M'),
+                "heart_rate":    r.heart_rate,
+                "sleep_hours":   r.sleep_hours,
+                "steps":         r.steps,
+                "temperature":   r.temperature,
+                "room_temp":     r.room_temp,
+                "humidity":      r.humidity,
+                "co2_level":     r.co2_level,
+                "health_score":  score,
+                "risk_level":    risk,
+                "ai_suggestion": suggestion,
             }
             for r in records
         ]
@@ -119,10 +113,25 @@ def check_sos_condition(user, data):
     return False, ""
 
 def send_sos_email(target_email, member_name, reason):
-    """发送告警邮件"""
-    from app import mail # 延迟导入避免循环依赖
-    msg = Message("【紧急告警】智慧家居健康舱提醒",
-                  recipients=[target_email])
-    msg.body = f"尊敬的家属：\n系统检测到您的家庭成员 {member_name} 的健康指标出现异常！\n异常详情：{reason}\n请立即确认其安全状态或联系社区医生。"
-    # 注意：在生产中建议使用异步发送，这里演示同步逻辑
-    mail.send(msg)
+    """异步发送告警邮件（后台线程，不阻塞 HTTP 响应）"""
+    import threading
+    from app import mail, app as flask_app
+    from flask_mail import Message
+
+    def _send():
+        with flask_app.app_context():
+            try:
+                msg = Message("【紧急告警】智慧家居健康舱提醒",
+                              recipients=[target_email])
+                msg.body = (
+                    f"尊敬的家属：\n"
+                    f"系统检测到您的家庭成员 {member_name} 的健康指标出现异常！\n"
+                    f"异常详情：{reason}\n"
+                    f"请立即确认其安全状态或联系社区医生。"
+                )
+                mail.send(msg)
+                flask_app.logger.info(f"SOS 邮件已发送至 {target_email}，原因：{reason}")
+            except Exception as e:
+                flask_app.logger.error(f"SOS 邮件发送失败 ({target_email}): {e}")
+
+    threading.Thread(target=_send, daemon=True).start()

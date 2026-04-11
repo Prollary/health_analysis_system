@@ -29,10 +29,17 @@ const authStore = useAuthStore()
 onMounted(async () => {
   if (authStore.isAdmin) {
     try {
-      const members = await familyApi.getMembers()
-      familyStore.setMembers(members)
+      const res = await familyApi.getGroup()
+      if (res.code === 200 && res.data && res.data.members) {
+        // 过滤掉自己，只保留真正的被监护家庭成员，并映射为 Navbar 需要的 id 和 name
+        const mappedMembers = res.data.members
+          .filter(m => !m.is_self)
+          .map(m => ({ id: m.user_id, name: m.username }))
+        familyStore.setMembers(mappedMembers)
+      }
     } catch (e) {
       // 非关键流程，静默失败
+      console.warn('获取家庭群组失败', e)
     }
   }
 })

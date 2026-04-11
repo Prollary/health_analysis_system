@@ -17,15 +17,30 @@
           <span>{{ authStore.username }}（我）</span>
         </div>
         <div
-          v-for="m in familyStore.members"
-          :key="m.id"
+          v-for="m in groupMembers"
+          :key="m.user_id"
           class="member-chip"
-          :class="{ selected: selectedId === m.id }"
-          @click="selectMember(m.id, m.name)"
+          :class="{ selected: selectedId === m.user_id }"
+          @click="selectMember(m.user_id, m.username)"
         >
-          <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${m.name}`" class="chip-avatar" />
-          <span>{{ m.name }}</span>
+          <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${m.username}`" class="chip-avatar" />
+          <span>{{ m.username }}</span>
         </div>
+      </div>
+
+      <!-- 绑定家庭成员 -->
+      <div class="bind-area">
+        <input
+          v-model="bindUsername"
+          class="bind-input"
+          placeholder="输入被监护人用户名"
+          @keyup.enter="bindMember"
+        />
+        <button class="btn-bind" :disabled="bindLoading" @click="bindMember">
+          <i class="fa-solid fa-user-plus"></i>
+          {{ bindLoading ? '绑定中…' : '绑定成员' }}
+        </button>
+        <span v-if="bindMsg" :class="bindOk ? 'bind-ok' : 'bind-err'">{{ bindMsg }}</span>
       </div>
     </div>
 
@@ -75,11 +90,11 @@
         <div class="card-header">
           <h2><i class="fa-solid fa-bell"></i> 告警历史记录</h2>
         </div>
-        <div v-if="sosStore.alertHistory.length" class="alert-table">
+        <div v-if="localSosHistory.length" class="alert-table">
           <div class="alert-row-header">
             <span>时间</span><span>告警内容</span>
           </div>
-          <div v-for="a in sosStore.alertHistory" :key="a.id" class="alert-row-item">
+          <div v-for="a in localSosHistory" :key="a.id" class="alert-row-item">
             <span class="alert-time">{{ a.time }}</span>
             <span class="alert-msg">{{ a.msg }}</span>
           </div>
@@ -121,12 +136,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import { useAuthStore } from '@/stores/auth'
 import { useFamilyStore } from '@/stores/family'
 import { useSosStore } from '@/stores/sos'
-import { healthApi } from '@/api'
+import { healthApi, familyApi, authApi } from '@/api'
 
 const authStore  = useAuthStore()
 const familyStore = useFamilyStore()
@@ -138,14 +153,69 @@ const historyData  = ref([])
 const latestData   = ref(null)
 const careChartEl  = ref(null)
 let careChart = null
+let pollTimer = null
+const POLL_INTERVAL = 10000 // 10秒轮询一次
 
 const settings = ref({ email: '', hrMax: 130, hrMin: 40 })
 const settingsSaved = ref(false)
 
+// 家庭组成员列表（排除自己）
+const groupMembers = ref([])
+
+// 综合历史告警记录
+const localSosHistory = computed(() => {
+  if (!historyData.value || !historyData.value.length) return []
+  return historyData.value
+    .filter(d => d.heart_rate > settings.value.hrMax || d.heart_rate < settings.value.hrMin)
+    .slice()
+    .reverse()
+    .slice(0, 5)
+    .map((d, i) => ({
+      id: `lsos-${i}-${d.timestamp}`,
+      time: d.timestamp,
+      msg: d.heart_rate > settings.value.hrMax ? `危险：检测到心率过快 (${d.heart_rate} bpm)！` : `危险：检测到心率过低 (${d.heart_rate} bpm)！`
+    }))
+})
+
+// 绑定表单状态
+const bindUsername = ref('')
+const bindLoading  = ref(false)
+const bindMsg      = ref('')
+const bindOk       = ref(false)
+
+async function loadGroup() {
+  try {
+    const res = await familyApi.getGroup()
+    // 过滤掉自己，只展示其他成员
+    groupMembers.value = (res.data?.members || []).filter(m => m.user_id !== authStore.userId)
+  } catch (e) { console.error(e) }
+}
+
+async function bindMember() {
+  const name = bindUsername.value.trim()
+  if (!name) return
+  bindLoading.value = true
+  bindMsg.value = ''
+  try {
+    const res = await familyApi.addMember(name)
+    bindOk.value = true
+    bindMsg.value = res.msg || '绑定成功'
+    bindUsername.value = ''
+    await loadGroup()          // 刷新成员列表
+  } catch (e) {
+    bindOk.value = false
+    bindMsg.value = e.response?.data?.msg || '绑定失败，请检查用户名'
+  } finally {
+    bindLoading.value = false
+    setTimeout(() => { bindMsg.value = '' }, 3000)
+  }
+}
+
 function selectMember(id, name) {
   selectedId.value = id
   selectedName.value = name
-  loadData()
+  loadData(id)       // 立即拉取该成员数据
+  startPolling(id)   // 重置轮询目标
 }
 
 function formatSteps(data) {
@@ -153,13 +223,19 @@ function formatSteps(data) {
   return data.steps.toLocaleString()
 }
 
-async function loadData() {
+async function loadData(userId) {
   try {
-    const res = await healthApi.getHistory()
+    const uid = userId ?? selectedId.value
+    const res = await healthApi.getHistory(uid === authStore.userId ? null : uid)
     historyData.value = res
     latestData.value = res[res.length - 1] || null
-    renderCareChart(res)
+    if (careChart) renderCareChart(res)
   } catch (e) { console.error(e) }
+}
+
+function startPolling(userId) {
+  if (pollTimer) clearInterval(pollTimer)
+  pollTimer = setInterval(() => loadData(userId), POLL_INTERVAL)
 }
 
 function renderCareChart(data) {
@@ -171,7 +247,7 @@ function renderCareChart(data) {
     tooltip: { trigger: 'axis', backgroundColor: '#1e2535', borderColor: '#2d3748', textStyle: { color: '#e2e8f0' } },
     grid: { left: 40, right: 20, top: 40, bottom: 24, containLabel: true },
     xAxis: { type: 'category', data: labels, axisLabel: { color: '#64748b' }, axisLine: { lineStyle: { color: '#2d3748' } } },
-    yAxis: { type: 'value', name: 'bpm', min: 30, axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e2535' } } },
+    yAxis: { type: 'value', name: 'bpm', min: 10, max: 150, axisLabel: { color: '#64748b' }, splitLine: { lineStyle: { color: '#1e2535' } } },
     series: [
       { type: 'line', data: hrs, smooth: true, symbol: 'circle', symbolSize: 7,
         lineStyle: { color: '#0d84ff', width: 2 }, itemStyle: { color: '#0d84ff' },
@@ -191,18 +267,33 @@ function renderCareChart(data) {
   })
 }
 
-function saveSettings() {
-  settingsSaved.value = true
-  setTimeout(() => settingsSaved.value = false, 2000)
+async function saveSettings() {
+  if (!settings.value.email) return
+  try {
+    await authApi.updateProfile({ email: settings.value.email })
+    settingsSaved.value = true
+    setTimeout(() => settingsSaved.value = false, 2000)
+  } catch (e) {
+    console.error('保存邮箱失败', e)
+  }
 }
 
 onMounted(async () => {
-  await loadData()
+  const [, , profile] = await Promise.all([
+    loadData(authStore.userId),
+    loadGroup(),
+    authApi.getProfile().catch(() => null)
+  ])
+  if (profile?.data?.email) settings.value.email = profile.data.email
   careChart = echarts.init(careChartEl.value)
   if (historyData.value.length) renderCareChart(historyData.value)
+  startPolling(authStore.userId)
   window.addEventListener('resize', () => careChart?.resize())
 })
-onUnmounted(() => careChart?.dispose())
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+  careChart?.dispose()
+})
 </script>
 
 <style scoped>
@@ -291,4 +382,25 @@ onUnmounted(() => careChart?.dispose())
 .empty-hint { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--text-muted); padding: 30px; }
 .empty-hint i { font-size: 28px; color: var(--success); opacity: 0.6; }
 .empty-hint p { font-size: 13px; }
+
+/* 绑定成员区域 */
+.bind-area {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; flex-shrink: 0;
+}
+.bind-input {
+  background: var(--bg-deep); border: 1px solid var(--border-color);
+  border-radius: 8px; padding: 7px 12px; color: var(--text-primary);
+  font-size: 13px; outline: none; width: 160px; transition: border-color 0.2s;
+}
+.bind-input:focus { border-color: var(--primary); }
+.btn-bind {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer;
+  background: var(--primary); color: #fff; font-size: 13px;
+  white-space: nowrap; transition: opacity 0.2s;
+}
+.btn-bind:disabled { opacity: 0.5; cursor: not-allowed; }
+.bind-ok  { font-size: 12px; color: var(--success); white-space: nowrap; }
+.bind-err { font-size: 12px; color: var(--danger);  white-space: nowrap; }
 </style>

@@ -181,7 +181,7 @@ async function loadData() {
   // 首次加载时显示 loading，轮询时静默刷新（不重置 loading 防止闪烁）
   if (!historyData.value.length) loading.value = true
   try {
-    const res = await healthApi.getHistory()
+    const res = await healthApi.getHistory(familyStore.getTargetUserId())
     historyData.value = Array.isArray(res) ? res : []
     renderTrendChart(historyData.value)
     renderRadarChart(historyData.value)

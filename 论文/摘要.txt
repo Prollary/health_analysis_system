@@ -1,0 +1,16 @@
+摘要
+
+【中文摘要】
+
+随着人口老龄化加剧与物联网技术的普及，家庭健康管理的智能化需求日益迫切。本文以实际开发完成的智慧家居健康分析系统为研究对象，提出并实现了一套基于Flask与AI技术的全栈健康管理平台。系统后端采用Flask框架构建RESTful API服务，集成Flask-JWT-Extended实现用户鉴权与家庭角色管理；前端基于Vue 3与ECharts 5实现多维健康数据实时可视化，并通过pywebview封装为独立桌面应用程序。在AI能力层面，系统构建了"本地随机森林模型+云端大语言模型"双层架构：本地模型基于scikit-learn完成毫秒级健康评分与风险等级输出，云端通过DeepSeek API实现个性化干预方案生成、自然语言健康日记解析与多模态情绪识别。系统还设计了SOS心率异常邮件预警机制与WeasyPrint驱动的健康周报PDF导出功能，形成完整的"监测—分析—干预—反馈"健康管理闭环。测试结果表明，本地推理接口响应时间低于50毫秒，全部API端点鉴权拦截准确率达100%，系统在12小时连续运行测试中保持稳定。
+
+关键词：智慧家居；健康管理；Flask；人工智能；大语言模型
+
+
+【英文摘要】
+
+Abstract
+
+With the accelerating aging of the population and the proliferation of Internet of Things technologies, the demand for intelligent home health management has become increasingly urgent. This paper presents a full-stack smart home health analysis platform developed and implemented based on the Flask framework and artificial intelligence technologies. The backend leverages Flask to provide RESTful API services, integrating Flask-JWT-Extended for user authentication and family role management. The frontend is built with Vue 3 and ECharts 5 to achieve real-time multi-dimensional health data visualization, and is packaged as a standalone desktop application via pywebview. For AI capabilities, the system adopts a dual-layer architecture combining a local Random Forest model with a cloud-based large language model (LLM): the local model, built on scikit-learn, delivers millisecond-level health scoring and risk classification, while the cloud layer—powered by the DeepSeek API—enables personalized intervention plan generation, natural language health diary parsing, and multimodal emotion analysis. The system also incorporates an SOS heart rate alert mechanism via email notification and a health weekly report PDF export function driven by WeasyPrint, forming a complete closed-loop health management cycle of "monitoring–analysis–intervention–feedback". Test results demonstrate that the local inference interface responds in under 50 milliseconds, the authentication interception accuracy across all API endpoints reaches 100%, and the system maintains stable operation throughout a 12-hour continuous stress test.
+
+Keywords: smart home; health management; Flask; artificial intelligence; large language model

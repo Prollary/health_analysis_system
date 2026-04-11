@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4 portrait; margin: 2.5cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "SimSun", "宋体", "Microsoft YaHei", serif;
+    background: #fff;
+    width: 210mm;
+    padding: 2.5cm;
+  }
+  svg { display: block; width: 165mm; }
+</style>
+</head>
+<body>
+<!--
+  3列设计：
+  列中心 X：93 / 280 / 467
+  模块框与子项框统一宽度 160px（x = center-80）
+  相邻列间距 = (280-80)-(93+80) = 27px，严格无重叠
+-->
+<svg viewBox="0 0 560 530" xmlns="http://www.w3.org/2000/svg"
+     font-family="SimSun, 宋体, Microsoft YaHei, serif">
+
+  <!-- ══════════ 系统标题 ══════════ -->
+  <rect x="60" y="8" width="440" height="52" rx="4"
+        fill="#fff" stroke="#000" stroke-width="2.2"/>
+  <text x="280" y="31" text-anchor="middle" font-size="15" font-weight="bold">智慧家居健康分析系统</text>
+  <text x="280" y="52" text-anchor="middle" font-size="15" font-weight="bold">非功能性需求设计框架</text>
+
+  <!-- 标题 → 水平总线 -->
+  <line x1="280" y1="60" x2="280" y2="92" stroke="#000" stroke-width="1.6"/>
+  <line x1="93"  y1="92" x2="467" y2="92" stroke="#000" stroke-width="1.6"/>
+  <!-- 3 根竖线下落至模块框顶部 -->
+  <line x1="93"  y1="92" x2="93"  y2="110" stroke="#000" stroke-width="1.6"/>
+  <line x1="280" y1="92" x2="280" y2="110" stroke="#000" stroke-width="1.6"/>
+  <line x1="467" y1="92" x2="467" y2="110" stroke="#000" stroke-width="1.6"/>
+
+  <!-- ══════════ 三大维度模块框（y=110, h=48）══════════ -->
+  <!-- 模块1：性能需求  center=93  x=13  右边界=173 -->
+  <rect x="13"  y="110" width="160" height="48" rx="3" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="93"  y="130" text-anchor="middle" font-size="13" font-weight="bold">性能需求</text>
+  <text x="93"  y="150" text-anchor="middle" font-size="11">（Performance）</text>
+
+  <!-- 模块2：安全性需求  center=280  x=200  左边界=200  间距27px -->
+  <rect x="200" y="110" width="160" height="48" rx="3" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="280" y="130" text-anchor="middle" font-size="13" font-weight="bold">安全性需求</text>
+  <text x="280" y="150" text-anchor="middle" font-size="11">（Security）</text>
+
+  <!-- 模块3：可扩展性需求  center=467  x=387  左边界=387  间距27px -->
+  <rect x="387" y="110" width="160" height="48" rx="3" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="467" y="130" text-anchor="middle" font-size="13" font-weight="bold">可扩展性需求</text>
+  <text x="467" y="150" text-anchor="middle" font-size="11">（Scalability）</text>
+
+  <!-- ══════════ 子项 1（y=172, h=40）── 接口响应与传输安全与架构设计 ══════════ -->
+  <!-- 连线：模块底(y=158) → 子项1顶(y=172) -->
+  <line x1="93"  y1="158" x2="93"  y2="172" stroke="#000" stroke-width="1.3"/>
+  <line x1="280" y1="158" x2="280" y2="172" stroke="#000" stroke-width="1.3"/>
+  <line x1="467" y1="158" x2="467" y2="172" stroke="#000" stroke-width="1.3"/>
+
+  <rect x="13"  y="172" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="93"  y="188" text-anchor="middle" font-size="10.5" font-weight="bold">接口响应时间</text>
+  <text x="93"  y="206" text-anchor="middle" font-size="10">AI推理 P95≤200ms / 查询≤500ms</text>
+
+  <rect x="200" y="172" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="280" y="188" text-anchor="middle" font-size="10.5" font-weight="bold">传输层安全</text>
+  <text x="280" y="206" text-anchor="middle" font-size="10">HTTPS 全程加密通信</text>
+
+  <rect x="387" y="172" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="467" y="188" text-anchor="middle" font-size="10.5" font-weight="bold">前后端分离架构</text>
+  <text x="467" y="206" text-anchor="middle" font-size="10">Vue.js + Flask RESTful API</text>
+
+  <!-- ══════════ 子项 2（y=226, h=40）══════════ -->
+  <line x1="93"  y1="212" x2="93"  y2="226" stroke="#000" stroke-width="1.3"/>
+  <line x1="280" y1="212" x2="280" y2="226" stroke="#000" stroke-width="1.3"/>
+  <line x1="467" y1="212" x2="467" y2="226" stroke="#000" stroke-width="1.3"/>
+
+  <rect x="13"  y="226" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="93"  y="242" text-anchor="middle" font-size="10.5" font-weight="bold">并发处理能力</text>
+  <text x="93"  y="260" text-anchor="middle" font-size="10">5次/秒写入，CPU峰值≤15%</text>
+
+  <rect x="200" y="226" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="280" y="242" text-anchor="middle" font-size="10.5" font-weight="bold">存储层安全</text>
+  <text x="280" y="260" text-anchor="middle" font-size="10">PBKDF2-SHA256 加盐哈希存储</text>
+
+  <rect x="387" y="226" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="467" y="242" text-anchor="middle" font-size="10.5" font-weight="bold">模块化独立组织</text>
+  <text x="467" y="260" text-anchor="middle" font-size="10">新增传感器无需修改核心路由</text>
+
+  <!-- ══════════ 子项 3（y=280, h=40）══════════ -->
+  <line x1="93"  y1="266" x2="93"  y2="280" stroke="#000" stroke-width="1.3"/>
+  <line x1="280" y1="266" x2="280" y2="280" stroke="#000" stroke-width="1.3"/>
+  <line x1="467" y1="266" x2="467" y2="280" stroke="#000" stroke-width="1.3"/>
+
+  <rect x="13"  y="280" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="93"  y="296" text-anchor="middle" font-size="10.5" font-weight="bold">内存稳定管理</text>
+  <text x="93"  y="314" text-anchor="middle" font-size="10">Flask进程稳定，前端轮询流畅</text>
+
+  <rect x="200" y="280" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="280" y="296" text-anchor="middle" font-size="10.5" font-weight="bold">访问控制层</text>
+  <text x="280" y="314" text-anchor="middle" font-size="10">JWT令牌鉴权，有效期7天</text>
+
+  <rect x="387" y="280" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="467" y="296" text-anchor="middle" font-size="10.5" font-weight="bold">环境监测合规</text>
+  <text x="467" y="314" text-anchor="middle" font-size="10">GB/T 18883-2022，CO₂&gt;1000ppm预警</text>
+
+  <!-- ══════════ 子项 4（y=334, h=40）══════════ -->
+  <line x1="93"  y1="320" x2="93"  y2="334" stroke="#000" stroke-width="1.3"/>
+  <line x1="280" y1="320" x2="280" y2="334" stroke="#000" stroke-width="1.3"/>
+  <line x1="467" y1="320" x2="467" y2="334" stroke="#000" stroke-width="1.3"/>
+
+  <rect x="13"  y="334" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="93"  y="350" text-anchor="middle" font-size="10.5" font-weight="bold">压力测试验证</text>
+  <text x="93"  y="368" text-anchor="middle" font-size="10">物联网三层架构实时处理标准</text>
+
+  <rect x="200" y="334" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="280" y="350" text-anchor="middle" font-size="10.5" font-weight="bold">密钥安全管理</text>
+  <text x="280" y="368" text-anchor="middle" font-size="10">环境变量隔离，防止密钥泄露</text>
+
+  <rect x="387" y="334" width="160" height="40" rx="2" fill="#fff" stroke="#000" stroke-width="1.3"/>
+  <text x="467" y="350" text-anchor="middle" font-size="10.5" font-weight="bold">容灾降级策略</text>
+  <text x="467" y="368" text-anchor="middle" font-size="10">AI不可用时切换本地规则引擎</text>
+
+  <!-- ══════════ 分隔虚线 ══════════ -->
+  <line x1="7" y1="392" x2="553" y2="392" stroke="#000" stroke-width="1" stroke-dasharray="5,3"/>
+
+  <!-- ══════════ 设计保障目标汇总框 ══════════ -->
+  <rect x="7" y="402" width="546" height="90" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <text x="280" y="421" text-anchor="middle" font-size="12" font-weight="bold">非功能性需求设计保障目标</text>
+
+  <!-- 列分隔线（三列，每列宽 182px） -->
+  <line x1="189" y1="430" x2="189" y2="482" stroke="#000" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="371" y1="430" x2="371" y2="482" stroke="#000" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- 列1 center=98 -->
+  <text x="98"  y="443" text-anchor="middle" font-size="10.5" font-weight="bold">响应速度与稳定性</text>
+  <text x="98"  y="459" text-anchor="middle" font-size="10">· 毫秒级接口响应保障</text>
+  <text x="98"  y="474" text-anchor="middle" font-size="10">· 低CPU占用高并发支撑</text>
+
+  <!-- 列2 center=280 -->
+  <text x="280" y="443" text-anchor="middle" font-size="10.5" font-weight="bold">三重防护安全体系</text>
+  <text x="280" y="459" text-anchor="middle" font-size="10">· 传输-存储-访问全链路</text>
+  <text x="280" y="474" text-anchor="middle" font-size="10">· 遵循健康数据安全规范</text>
+
+  <!-- 列3 center=462 -->
+  <text x="462" y="443" text-anchor="middle" font-size="10.5" font-weight="bold">持续迭代演进能力</text>
+  <text x="462" y="459" text-anchor="middle" font-size="10">· 低耦合模块化扩展</text>
+  <text x="462" y="474" text-anchor="middle" font-size="10">· 预留字段降低迭代成本</text>
+
+  <!-- ══════════ 图题 ══════════ -->
+  <text x="280" y="514" text-anchor="middle" font-size="11">图 2-2　智慧家居健康分析系统非功能性需求架构图</text>
+
+</svg>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4 portrait; margin: 2.5cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "SimSun", "宋体", "Microsoft YaHei", serif;
+    background: #fff;
+    width: 210mm;
+    padding: 2.5cm;
+  }
+  svg { display: block; width: 165mm; }
+</style>
+</head>
+<body>
+<!--
+  User 表：x=130, w=300, center=280, y=68, h=135（header26+7行×15+4）
+  三张子表（y=225）：
+    SensorData   x=10,  w=165, center=92,  h=165（header26+9行×15+4）
+    HealthReport x=197, w=165, center=279, h=135（header26+7行×15+4）
+    HealthDiary  x=384, w=165, center=466, h=105（header26+5行×15+4）
+  相邻表间距 22px，SensorData右边=175，HealthReport左边=197 ✓
+-->
+<svg viewBox="0 0 560 480" xmlns="http://www.w3.org/2000/svg"
+     font-family="SimSun, 宋体, Microsoft YaHei, serif">
+
+  <!-- ══════════ 标题 ══════════ -->
+  <rect x="60" y="6" width="440" height="52" rx="4"
+        fill="#fff" stroke="#000" stroke-width="2.2"/>
+  <text x="280" y="28" text-anchor="middle" font-size="15" font-weight="bold">智慧家居健康分析系统</text>
+  <text x="280" y="49" text-anchor="middle" font-size="15" font-weight="bold">数据库表结构设计</text>
+
+  <!-- ══════════════════════════════════════════
+       User 表  x=130, y=68, w=300, h=135
+  ══════════════════════════════════════════ -->
+  <rect x="130" y="68" width="300" height="135" rx="3"
+        fill="#fff" stroke="#000" stroke-width="2"/>
+  <line x1="130" y1="94" x2="430" y2="94" stroke="#000" stroke-width="1.3"/>
+  <text x="280" y="86" text-anchor="middle" font-size="12" font-weight="bold">User　用户信息表</text>
+
+  <!-- 字段行（起始基线 y=68+26+11=105，行距15px）-->
+  <text x="138" y="105" font-size="10"><tspan font-weight="bold">PK</tspan>  id : INT　　　主键自增</text>
+  <text x="138" y="120" font-size="10">    username : VARCHAR(50)　用户名</text>
+  <text x="138" y="135" font-size="10">    password_hash : VARCHAR(256)</text>
+  <text x="138" y="150" font-size="10">    email : VARCHAR(120)</text>
+  <text x="138" y="165" font-size="10">    age : INT　年龄　　role : VARCHAR(20)</text>
+  <text x="138" y="180" font-size="10"><tspan font-weight="bold">FK</tspan>  parent_id : INT　自外键 · 家庭树结构</text>
+
+  <!-- 自外键 self-reference 折线箭头（从表右侧 parent_id 行 → 回到表右侧顶部）-->
+  <line x1="430" y1="178" x2="450" y2="178" stroke="#000" stroke-width="1.2"/>
+  <line x1="450" y1="178" x2="450" y2="72"  stroke="#000" stroke-width="1.2"/>
+  <line x1="450" y1="72"  x2="432" y2="72"  stroke="#000" stroke-width="1.2"/>
+  <!-- 箭头尖端 → 指向表右上角（向左） -->
+  <polygon points="430,72 438,68 438,76" fill="#000"/>
+  <text x="455" y="128" font-size="9" font-style="italic">自引用</text>
+  <text x="455" y="140" font-size="9" font-style="italic">家庭树</text>
+
+  <!-- ══════════ 连接线：User(1) → 三子表(N) ══════════ -->
+  <!-- 垂直主干从 User 底部 → y=213 -->
+  <line x1="280" y1="203" x2="280" y2="213" stroke="#000" stroke-width="1.4"/>
+  <!-- 水平分叉线 -->
+  <line x1="92"  y1="213" x2="466" y2="213" stroke="#000" stroke-width="1.4"/>
+  <!-- 三路下行支线 + 箭头（tips at y=225） -->
+  <line x1="92"  y1="213" x2="92"  y2="219" stroke="#000" stroke-width="1.3"/>
+  <polygon points="92,225  86,218  98,218"  fill="#000"/>
+  <line x1="280" y1="213" x2="280" y2="219" stroke="#000" stroke-width="1.3"/>
+  <polygon points="280,225 274,218 286,218" fill="#000"/>
+  <line x1="466" y1="213" x2="466" y2="219" stroke="#000" stroke-width="1.3"/>
+  <polygon points="466,225 460,218 472,218" fill="#000"/>
+  <!-- 基数标注 -->
+  <text x="271" y="210" font-size="9" font-weight="bold">1</text>
+  <text x="83"  y="222" font-size="9" font-weight="bold">N</text>
+  <text x="271" y="222" font-size="9" font-weight="bold">N</text>
+  <text x="457" y="222" font-size="9" font-weight="bold">N</text>
+
+  <!-- ══════════════════════════════════════════
+       SensorData 表  x=10, y=225, w=165, h=165
+  ══════════════════════════════════════════ -->
+  <rect x="10" y="225" width="165" height="165" rx="3"
+        fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <line x1="10" y1="251" x2="175" y2="251" stroke="#000" stroke-width="1.2"/>
+  <text x="92" y="243" text-anchor="middle" font-size="11" font-weight="bold">SensorData 传感器数据表</text>
+
+  <!-- 字段（起始 y=225+26+11=262，行距15px）-->
+  <text x="17" y="262" font-size="9.5"><tspan font-weight="bold">PK</tspan> id : INT　主键自增</text>
+  <text x="17" y="277" font-size="9.5"><tspan font-weight="bold">FK</tspan> user_id : INT　外键</text>
+  <text x="17" y="292" font-size="9.5">    timestamp : DATETIME</text>
+  <text x="17" y="307" font-size="9.5">    heart_rate : INT　心率</text>
+  <text x="17" y="322" font-size="9.5">    sleep_hours : FLOAT　睡眠</text>
+  <text x="17" y="337" font-size="9.5">    steps : INT　步数</text>
+  <text x="17" y="352" font-size="9.5">    temperature : FLOAT　可空</text>
+  <text x="17" y="367" font-size="9.5">    humidity : FLOAT　可空</text>
+  <text x="17" y="382" font-size="9.5">    co2 : FLOAT　可空</text>
+
+  <!-- ══════════════════════════════════════════
+       HealthReport 表  x=197, y=225, w=165, h=135
+  ══════════════════════════════════════════ -->
+  <rect x="197" y="225" width="165" height="135" rx="3"
+        fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <line x1="197" y1="251" x2="362" y2="251" stroke="#000" stroke-width="1.2"/>
+  <text x="279" y="243" text-anchor="middle" font-size="11" font-weight="bold">HealthReport 健康报告表</text>
+
+  <text x="204" y="262" font-size="9.5"><tspan font-weight="bold">PK</tspan> id : INT　主键自增</text>
+  <text x="204" y="277" font-size="9.5"><tspan font-weight="bold">FK</tspan> user_id : INT　外键</text>
+  <text x="204" y="292" font-size="9.5">    created_at : DATETIME</text>
+  <text x="204" y="307" font-size="9.5">    health_score : FLOAT　评分</text>
+  <text x="204" y="322" font-size="9.5">    risk_level : VARCHAR(20)</text>
+  <text x="204" y="337" font-size="9.5">    ai_report : TEXT　本地报告</text>
+  <text x="204" y="352" font-size="9.5">    cloud_ai_report : TEXT</text>
+
+  <!-- ══════════════════════════════════════════
+       HealthDiary 表  x=384, y=225, w=165, h=105
+  ══════════════════════════════════════════ -->
+  <rect x="384" y="225" width="165" height="105" rx="3"
+        fill="#fff" stroke="#000" stroke-width="1.6"/>
+  <line x1="384" y1="251" x2="549" y2="251" stroke="#000" stroke-width="1.2"/>
+  <text x="466" y="243" text-anchor="middle" font-size="11" font-weight="bold">HealthDiary 健康日记表</text>
+
+  <text x="391" y="262" font-size="9.5"><tspan font-weight="bold">PK</tspan> id : INT　主键自增</text>
+  <text x="391" y="277" font-size="9.5"><tspan font-weight="bold">FK</tspan> user_id : INT　外键</text>
+  <text x="391" y="292" font-size="9.5">    created_at : DATETIME</text>
+  <text x="391" y="307" font-size="9.5">    raw_content : TEXT　原始日记</text>
+  <text x="391" y="322" font-size="9.5">    parsed_json : TEXT　AI解析</text>
+
+  <!-- ══════════ 关系说明框 ══════════ -->
+  <rect x="7" y="402" width="546" height="54" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.5"/>
+  <text x="280" y="420" text-anchor="middle" font-size="10" font-weight="bold">表间关系说明</text>
+  <text x="14"  y="436" font-size="9.5">· User 表（主表）通过 user_id 与 SensorData / HealthReport / HealthDiary 形成一对多（1:N）关联</text>
+  <text x="14"  y="450" font-size="9.5">· User.parent_id 自外键实现家庭树结构，支持管理员与家属多角色层级管理</text>
+
+  <!-- ══════════ 图题 ══════════ -->
+  <text x="280" y="474" text-anchor="middle" font-size="11">图 3-1　智慧家居健康分析系统数据库表结构设计图</text>
+
+</svg>
+</body>
+</html>

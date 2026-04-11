@@ -112,36 +112,31 @@ def generate_detailed_intervention(user_profile, analysis_data):
     """
     根据用户画像（年龄、性别、风险等级）调用 DeepSeek 生成 1000 字以上深度干预方案
     """
-    age    = user_profile.get('age', '未知')
-    gender = user_profile.get('gender', '未知')
-    risk   = analysis_data.get('risk_level', '中风险')
-    hr     = analysis_data.get('heart_rate', '--')
-    sleep  = analysis_data.get('sleep', '--')
-    steps  = analysis_data.get('steps', '--')
+    ag = user_profile.get('age', '未知')
+    gd = user_profile.get('gender', '未知')
+    rk = analysis_data.get('risk_level', '中风险')
+    hr = analysis_data.get('heart_rate', '--')
+    sl = analysis_data.get('sleep', '--')
+    st = analysis_data.get('steps', '--')
 
-    prompt = f"""你是一位资深的临床营养师和运动康复专家。请为以下用户定制一份详尽的【健康干预方案】。
+    diet_prompt = f"""你是一位资深的临床营养师。请为以下用户定制一份详尽的【个性化饮食方案】。
+用户画像：年龄 {ag} 岁，性别 {gd}，当前健康风险等级：{rk}。
+最新指标：心率{hr}bpm，睡眠{sl}h，步数{st}步。
 
-用户画像：年龄 {age} 岁，性别 {gender}，当前健康风险等级：{risk}。
-最新指标：心率 {hr} bpm，睡眠 {sleep} h，步数 {steps} 步。
+要求内容包含“为什么要吃这个食物”、“该怎么吃”、“含有哪些核心营养素”。纯文本的排版美观，详细列出3-5条，不得重复，不得出现输入的话，输出的内容要求是全新的，字数适中不要太短，最好以表格美化形式表现。语气专业且富有亲和力。"""
 
-请严格按以下要求生成内容：
+    exercise_prompt = f"""你是一位资深的运动康复专家。请为以下用户定制一份详尽的【定制化运动方案】。
+用户画像：年龄 {ag} 岁，性别 {gd}，当前健康风险等级：{rk}。
+最新指标：心率{hr}bpm，睡眠{sl}h，步数{st}步。
 
-## 【个性化饮食推荐】
-- 结合用户年龄、性别、风险等级给出具体食物清单
-- 每种食物说明：为什么要吃、该怎么吃、含有哪些核心营养素
-- 字数不少于 500 中文字符
-
-## 【定制化运动处方】
-- 结合用户体征数据推荐适合的运动类型
-- 每种运动说明：为什么做、该怎么做、具体时长与强度、对身体的好处
-- 字数不少于 500 中文字符
-
-语气专业且富有亲和力，使用 Markdown 结构化排版。"""
+要求内容包含“为什么做这个运动”、“该怎么做”、“对身体的具体好处”。纯文本的排版美观，详细列出3-5条，不得重复，不得出现输入的话，输出的内容要求是全新的，字数适中不要太短，最好以表格美化形式表现。语气专业且富有亲和力。"""
 
     try:
-        return _chat(
-            [{"role": "user", "content": prompt}],
-            max_tokens=4096
-        )
+        diet_plan = _chat([{"role": "user", "content": diet_prompt}], max_tokens=2048)
+        exercise_plan = _chat([{"role": "user", "content": exercise_prompt}], max_tokens=2048)
+        return {
+            "diet": diet_plan,
+            "exercise": exercise_plan
+        }
     except Exception as e:
-        return f"干预方案生成失败: {e}"
+        return {"diet": f"生成失败: {e}", "exercise": f"生成失败: {e}"}

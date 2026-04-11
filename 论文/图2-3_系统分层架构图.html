@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4 portrait; margin: 2.5cm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "SimSun", "宋体", "Microsoft YaHei", serif;
+    background: #fff;
+    width: 210mm;
+    padding: 2.5cm;
+  }
+  svg { display: block; width: 165mm; }
+</style>
+</head>
+<body>
+<!--
+  分层架构图 — 四横层布局
+  每层：x=10, width=540, height=84（头部24px + 内容60px）
+  层内4个组件框：x=15/145/275/405, width=120, height=42
+  相邻框间距 10px，框右边界=135/265/395/525，均不超出层右边界550
+  层间箭头区高度 22px，含标准化接口说明文字
+-->
+<svg viewBox="0 0 560 508" xmlns="http://www.w3.org/2000/svg"
+     font-family="SimSun, 宋体, Microsoft YaHei, serif">
+
+  <!-- ══════════ 图题标题 ══════════ -->
+  <rect x="60" y="6" width="440" height="52" rx="4"
+        fill="#fff" stroke="#000" stroke-width="2.2"/>
+  <text x="280" y="28" text-anchor="middle" font-size="15" font-weight="bold">智慧家居健康分析系统</text>
+  <text x="280" y="49" text-anchor="middle" font-size="15" font-weight="bold">分层架构设计框架</text>
+
+  <!-- ══════════════════════════════════════════
+       第一层：展示层  y=68–152
+  ══════════════════════════════════════════ -->
+  <!-- 层外框 -->
+  <rect x="10" y="68" width="540" height="84" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <!-- 头部分隔线 -->
+  <line x1="10" y1="92" x2="550" y2="92" stroke="#000" stroke-width="1.2"/>
+  <text x="280" y="85" text-anchor="middle" font-size="12" font-weight="bold">展示层（Presentation Layer）</text>
+
+  <!-- 组件框 1 -->
+  <rect x="15"  y="100" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="75"  y="116" text-anchor="middle" font-size="10" font-weight="bold">Vue 3 单页应用</text>
+  <text x="75"  y="133" text-anchor="middle" font-size="9.5">前端交互核心框架</text>
+
+  <!-- 组件框 2 -->
+  <rect x="145" y="100" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="205" y="116" text-anchor="middle" font-size="10" font-weight="bold">ECharts 5 可视化</text>
+  <text x="205" y="133" text-anchor="middle" font-size="9.5">折线图 / 雷达图渲染</text>
+
+  <!-- 组件框 3 -->
+  <rect x="275" y="100" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="335" y="116" text-anchor="middle" font-size="10" font-weight="bold">每5秒接口轮询</text>
+  <text x="335" y="133" text-anchor="middle" font-size="9.5">体征指标实时更新</text>
+
+  <!-- 组件框 4 -->
+  <rect x="405" y="100" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="465" y="116" text-anchor="middle" font-size="10" font-weight="bold">Axios 请求封装</text>
+  <text x="465" y="133" text-anchor="middle" font-size="9.5">自动注入 JWT 头部</text>
+
+  <!-- ══════════ 层间箭头 1  y=152–174 ══════════ -->
+  <line x1="280" y1="152" x2="280" y2="167" stroke="#000" stroke-width="1.4"/>
+  <polygon points="280,174 274,164 286,164" fill="#000"/>
+  <text x="293" y="166" font-size="9.5">标准化 JSON 交互 / HTTP 请求与响应</text>
+
+  <!-- ══════════════════════════════════════════
+       第二层：业务逻辑层  y=174–258
+  ══════════════════════════════════════════ -->
+  <rect x="10" y="174" width="540" height="84" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <line x1="10" y1="198" x2="550" y2="198" stroke="#000" stroke-width="1.2"/>
+  <text x="280" y="191" text-anchor="middle" font-size="12" font-weight="bold">业务逻辑层（Business Logic Layer）</text>
+
+  <rect x="15"  y="206" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="75"  y="222" text-anchor="middle" font-size="10" font-weight="bold">Flask 框架</text>
+  <text x="75"  y="239" text-anchor="middle" font-size="9.5">RESTful 规范设计</text>
+
+  <rect x="145" y="206" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="205" y="222" text-anchor="middle" font-size="10" font-weight="bold">23 个 API 端点</text>
+  <text x="205" y="239" text-anchor="middle" font-size="9.5">统一状态码与数据载荷</text>
+
+  <rect x="275" y="206" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="335" y="222" text-anchor="middle" font-size="10" font-weight="bold">JWT 令牌认证</text>
+  <text x="335" y="239" text-anchor="middle" font-size="9.5">Flask-JWT-Extended 7天</text>
+
+  <rect x="405" y="206" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="465" y="222" text-anchor="middle" font-size="10" font-weight="bold">Flask-Mail 扩展</text>
+  <text x="465" y="239" text-anchor="middle" font-size="9.5">SOS 邮件预警推送</text>
+
+  <!-- ══════════ 层间箭头 2  y=258–280 ══════════ -->
+  <line x1="280" y1="258" x2="280" y2="273" stroke="#000" stroke-width="1.4"/>
+  <polygon points="280,280 274,270 286,270" fill="#000"/>
+  <text x="293" y="272" font-size="9.5">数据查询请求 / AI 分析任务调用</text>
+
+  <!-- ══════════════════════════════════════════
+       第三层：数据处理层  y=280–364
+  ══════════════════════════════════════════ -->
+  <rect x="10" y="280" width="540" height="84" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <line x1="10" y1="304" x2="550" y2="304" stroke="#000" stroke-width="1.2"/>
+  <text x="280" y="297" text-anchor="middle" font-size="12" font-weight="bold">数据处理层（Data Processing Layer）</text>
+
+  <rect x="15"  y="312" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="75"  y="328" text-anchor="middle" font-size="10" font-weight="bold">特征工程模块</text>
+  <text x="75"  y="345" text-anchor="middle" font-size="9.5">体征数据预处理</text>
+
+  <rect x="145" y="312" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="205" y="328" text-anchor="middle" font-size="10" font-weight="bold">随机森林模型</text>
+  <text x="205" y="345" text-anchor="middle" font-size="9.5">joblib 毫秒级健康评分</text>
+
+  <rect x="275" y="312" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="335" y="328" text-anchor="middle" font-size="10" font-weight="bold">DeepSeek AI 分析</text>
+  <text x="335" y="345" text-anchor="middle" font-size="9.5">深度干预建议生成</text>
+
+  <rect x="405" y="312" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="465" y="328" text-anchor="middle" font-size="10" font-weight="bold">环境质量评估</text>
+  <text x="465" y="345" text-anchor="middle" font-size="9.5">GB/T 18883-2022 标准</text>
+
+  <!-- ══════════ 层间箭头 3  y=364–386 ══════════ -->
+  <line x1="280" y1="364" x2="280" y2="379" stroke="#000" stroke-width="1.4"/>
+  <polygon points="280,386 274,376 286,376" fill="#000"/>
+  <text x="293" y="378" font-size="9.5">SQL 查询 / SQLAlchemy ORM 操作</text>
+
+  <!-- ══════════════════════════════════════════
+       第四层：数据存储层  y=386–470
+  ══════════════════════════════════════════ -->
+  <rect x="10" y="386" width="540" height="84" rx="4"
+        fill="#fff" stroke="#000" stroke-width="1.8"/>
+  <line x1="10" y1="410" x2="550" y2="410" stroke="#000" stroke-width="1.2"/>
+  <text x="280" y="403" text-anchor="middle" font-size="12" font-weight="bold">数据存储层（Data Storage Layer）</text>
+
+  <rect x="15"  y="418" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="75"  y="434" text-anchor="middle" font-size="10" font-weight="bold">MySQL 8.0</text>
+  <text x="75"  y="451" text-anchor="middle" font-size="9.5">关系型数据库引擎</text>
+
+  <rect x="145" y="418" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="205" y="434" text-anchor="middle" font-size="10" font-weight="bold">SQLAlchemy ORM</text>
+  <text x="205" y="451" text-anchor="middle" font-size="9.5">5 张核心数据表定义</text>
+
+  <rect x="275" y="418" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="335" y="434" text-anchor="middle" font-size="10" font-weight="bold">User 家庭树结构</text>
+  <text x="335" y="451" text-anchor="middle" font-size="9.5">parent_id 自外键关联</text>
+
+  <rect x="405" y="418" width="120" height="42" rx="2" fill="#fff" stroke="#000" stroke-width="1.2"/>
+  <text x="465" y="434" text-anchor="middle" font-size="10" font-weight="bold">SensorData 扩展设计</text>
+  <text x="465" y="451" text-anchor="middle" font-size="9.5">可空字段兼容传感器缺失</text>
+
+  <!-- ══════════ 图题 ══════════ -->
+  <text x="280" y="496" text-anchor="middle" font-size="11">图 2-3　智慧家居健康分析系统分层架构设计框架图</text>
+
+</svg>
+</body>
+</html>
