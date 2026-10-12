@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ':*)",
+      "Bash(python -m py_compile app.py)",
+      "Bash(python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(pip list:*)",
+      "Bash(npm --version)",
+      "Bash(npm run:*)",
+      "Bash(venv/Scripts/pip install:*)",
+      "Bash(venv/Scripts/python -c \"import webview; print\\('pywebview ok', webview.__version__\\)\")",
+      "Bash(venv/Scripts/python -c \"import PyInstaller; print\\('pyinstaller ok', PyInstaller.__version__\\)\")",
+      "Bash(venv/Scripts/python -c \"import webview; print\\('pywebview ok'\\)\")",
+      "Bash(venv/Scripts/python -c \"import PyInstaller; print\\('pyinstaller', PyInstaller.__version__\\)\")",
+      "Bash(venv/Scripts/pyinstaller healthai.spec --noconfirm)",
+      "Bash(call build_all.bat)",
+      "Bash(cmd /c build_all.bat)",
+      "Bash(cmd /c \"venv\\\\\\\\Scripts\\\\\\\\activate.bat && rmdir /s /q build 2>nul & rmdir /s /q dist 2>nul & echo Cleaned\")"
+    ]
+  }
+}

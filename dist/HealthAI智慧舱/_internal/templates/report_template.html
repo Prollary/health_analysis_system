@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>健康周报 · {{ user_name }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Microsoft YaHei', 'SimHei', Arial, sans-serif; background: #f5f7fa; color: #1e293b; font-size: 14px; }
+
+  .page { width: 794px; margin: 0 auto; background: white; padding: 48px 56px; }
+
+  /* 封面头部 */
+  .header { text-align: center; padding-bottom: 28px; border-bottom: 3px solid #0d84ff; margin-bottom: 32px; }
+  .header .logo { font-size: 28px; font-weight: 900; color: #0d84ff; letter-spacing: 2px; }
+  .header .subtitle { font-size: 13px; color: #64748b; margin-top: 6px; }
+  .header .report-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-top: 16px; }
+  .header .meta { font-size: 12px; color: #94a3b8; margin-top: 8px; }
+
+  /* KPI 卡片行 */
+  .kpi-row { display: flex; gap: 16px; margin-bottom: 28px; }
+  .kpi-card {
+    flex: 1; background: #f8faff; border: 1px solid #e2eaf7;
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .kpi-card .val { font-size: 26px; font-weight: 800; color: #0d84ff; }
+  .kpi-card .unit { font-size: 12px; color: #64748b; }
+  .kpi-card .lbl { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+  /* 风险等级徽章 */
+  .risk-badge {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 700;
+  }
+  .risk-low    { background: #d1fae5; color: #065f46; }
+  .risk-mid    { background: #fef3c7; color: #92400e; }
+  .risk-high   { background: #fee2e2; color: #991b1b; }
+
+  /* 数据表格 */
+  .section-title {
+    font-size: 15px; font-weight: 700; color: #1e293b;
+    border-left: 4px solid #0d84ff; padding-left: 10px;
+    margin: 24px 0 14px;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: #0d84ff; color: white; }
+  thead th { padding: 8px 10px; text-align: center; }
+  tbody tr:nth-child(even) { background: #f8faff; }
+  tbody td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #e2eaf7; color: #374151; }
+
+  /* AI 报告 */
+  .ai-box {
+    background: #f0f7ff; border: 1px solid #bfdbfe;
+    border-radius: 10px; padding: 20px; margin-top: 10px;
+    line-height: 1.9; font-size: 13px; color: #1e293b;
+    white-space: pre-wrap;
+  }
+
+  /* 页脚 */
+  .footer {
+    margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2eaf7;
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: #94a3b8;
+  }
+
+  .disclaimer {
+    background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+    padding: 10px 14px; font-size: 11px; color: #92400e;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 头部 -->
+  <div class="header">
+    <div class="logo">HealthAI 智慧舱</div>
+    <div class="subtitle">智慧家居健康管理平台</div>
+    <div class="report-title">个人健康周报</div>
+    <div class="meta">用户：{{ user_name }} &nbsp;·&nbsp; 生成时间：{{ generated_at }}</div>
+  </div>
+
+  <!-- KPI 速览 -->
+  {% if summary %}
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="val">{{ summary.avg_heart_rate }}</div>
+      <div class="unit">bpm</div>
+      <div class="lbl">平均心率</div>
+    </div>
+    <div class="kpi-card">
+      <div class="val">{{ summary.avg_sleep }}</div>
+      <div class="unit">h</div>
+      <div class="lbl">平均睡眠</div>
+    </div>
+    <div class="kpi-card">
+      <div class="val">{{ summary.avg_steps }}</div>
+      <div class="unit">步</div>
+      <div class="lbl">日均步数</div>
+    </div>
+    <div class="kpi-card">
+      <div class="val">{{ summary.health_score or '--' }}</div>
+      <div class="unit">分</div>
+      <div class="lbl">最新健康评分</div>
+    </div>
+    <div class="kpi-card">
+      <span class="risk-badge {% if summary.risk_level == '高风险' %}risk-high{% elif summary.risk_level == '中风险' %}risk-mid{% else %}risk-low{% endif %}">
+        {{ summary.risk_level or '暂无' }}
+      </span>
+      <div class="lbl" style="margin-top:8px">风险等级</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 历史数据表格 -->
+  {% if history %}
+  <div class="section-title">本周体征数据明细</div>
+  <table>
+    <thead>
+      <tr>
+        <th>时间</th>
+        <th>心率(bpm)</th>
+        <th>睡眠(h)</th>
+        <th>步数</th>
+        <th>室温(℃)</th>
+        <th>湿度(%)</th>
+        <th>CO2(ppm)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+      <tr>
+        <td>{{ row.timestamp }}</td>
+        <td>{{ row.heart_rate }}</td>
+        <td>{{ row.sleep_hours }}</td>
+        <td>{{ row.steps }}</td>
+        <td>{{ row.room_temp }}</td>
+        <td>{{ row.humidity }}</td>
+        <td>{{ row.co2_level }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- AI 深度报告 -->
+  {% if ai_report %}
+  <div class="section-title">AI 深度健康建议</div>
+  <div class="ai-box">{{ ai_report }}</div>
+  {% endif %}
+
+  <!-- 免责声明 -->
+  <div class="disclaimer">
+    ⚠ 本报告由 AI 模型自动生成，仅供健康参考，不构成医疗诊断。如有不适请及时就医。
+  </div>
+
+  <!-- 页脚 -->
+  <div class="footer">
+    <span>HealthAI 智慧家居健康管理平台</span>
+    <span>{{ generated_at }}</span>
+  </div>
+
+</div>
+</body>
+</html>
